@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\Admin\StatsController;
+use App\Http\Controllers\Admin\CssThemeController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\PostController;
@@ -45,6 +46,14 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
 
     // 사이트 통계
     Route::get('/stats', [StatsController::class, 'index'])->name('stats.index');
+
+    // CSS 테마 관리
+    Route::get('/themes', [CssThemeController::class, 'index'])->name('themes.index');
+    Route::post('/themes', [CssThemeController::class, 'store'])->name('themes.store');
+    Route::get('/themes/{theme}/edit', [CssThemeController::class, 'edit'])->name('themes.edit');
+    Route::put('/themes/{theme}', [CssThemeController::class, 'update'])->name('themes.update');
+    Route::patch('/themes/{theme}/activate', [CssThemeController::class, 'activate'])->name('themes.activate');
+    Route::delete('/themes/{theme}', [CssThemeController::class, 'destroy'])->name('themes.destroy');
 
     // 사이트 설정
     Route::get('/settings', [SettingController::class, 'index'])->name('settings');

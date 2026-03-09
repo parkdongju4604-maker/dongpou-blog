@@ -224,6 +224,17 @@
         </div>
 
         <div class="nav-section">
+            <div class="nav-label">디자인</div>
+            <a href="{{ route('admin.themes.index') }}"
+               class="nav-item {{ request()->routeIs('admin.themes.*') ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/><path d="M20.39 4.61a1 1 0 00-1.42 0l-4.24 4.24a4 4 0 00-5.66 5.66l-3.54 3.54A1 1 0 107.95 19.46l3.54-3.54a4 4 0 005.66-5.66l4.24-4.24a1 1 0 000-1.41z"/>
+                </svg>
+                CSS 테마
+            </a>
+        </div>
+
+        <div class="nav-section">
             <div class="nav-label">설정</div>
             <a href="{{ route('admin.settings') }}"
                class="nav-item {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
