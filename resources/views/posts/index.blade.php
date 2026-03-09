@@ -19,11 +19,11 @@
 
 @section('content')
 
-<div class="hero">
+<section class="hero" aria-labelledby="hero-heading">
     <div class="hero-eyebrow">{{ $blogName }}</div>
-    <h1>{{ isset($category) ? $category : $heroTitle }}</h1>
+    <h1 id="hero-heading">{{ isset($category) ? $category : $heroTitle }}</h1>
     <p>{{ isset($category) ? $category . ' 카테고리의 글 목록입니다.' : $heroSubtitle }}</p>
-</div>
+</section>
 
 <nav aria-label="카테고리 필터">
     <div class="category-tabs">
@@ -48,27 +48,29 @@
 @else
     <div class="grid" role="list">
         @foreach($posts as $post)
-        <a href="{{ route('posts.show', $post->slug) }}" class="card" role="listitem">
-            <div class="card-body">
-                <div class="card-category">{{ $post->category }}</div>
-                <h2 class="card-title">{{ $post->title }}</h2>
-                @if($post->excerpt)
-                    <p class="card-excerpt">{{ $post->excerpt }}</p>
-                @endif
-                <div class="card-meta">
-                    <time datetime="{{ $post->published_at?->toIso8601String() }}">
-                        {{ $post->published_at?->format('Y.m.d') }}
-                    </time>
-                    <span class="card-meta-dot"></span>
-                    <span>{{ $post->reading_time }}분 읽기</span>
+        <article role="listitem">
+            <a href="{{ route('posts.show', $post->slug) }}" class="card">
+                <div class="card-body">
+                    <div class="card-category">{{ $post->category }}</div>
+                    <h2 class="card-title">{{ $post->title }}</h2>
+                    @if($post->excerpt)
+                        <p class="card-excerpt">{{ $post->excerpt }}</p>
+                    @endif
+                    <div class="card-meta">
+                        <time datetime="{{ $post->published_at?->toIso8601String() }}">
+                            {{ $post->published_at?->format('Y.m.d') }}
+                        </time>
+                        <span class="card-meta-dot" aria-hidden="true"></span>
+                        <span>{{ $post->reading_time }}분 읽기</span>
+                    </div>
                 </div>
-            </div>
-        </a>
+            </a>
+        </article>
         @endforeach
     </div>
-    <div class="pagination" aria-label="페이지 탐색">
+    <nav class="pagination" aria-label="페이지 탐색">
         {{ $posts->links() }}
-    </div>
+    </nav>
 @endif
 
 @endsection

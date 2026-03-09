@@ -107,7 +107,8 @@
 </header>
 
 {{-- 모바일 메뉴 --}}
-<div class="nav-mobile" id="nav-mobile">
+<div class="nav-mobile" id="nav-mobile"
+     role="dialog" aria-modal="true" aria-label="모바일 메뉴">
     <div class="nav-overlay" id="nav-overlay"></div>
     <nav class="nav-drawer">
         <button class="nav-drawer-close" id="nav-close" aria-label="닫기">

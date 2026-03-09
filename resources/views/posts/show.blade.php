@@ -142,20 +142,23 @@
         @endif
 
         {{-- 하단 --}}
-        <div class="post-footer">
+        <footer class="post-footer">
             <a href="{{ route('home') }}" class="btn btn-secondary">
                 ← 목록으로
             </a>
-            <span style="font-size:.78rem;color:#9ca3af">{{ $post->published_at?->format('Y.m.d') }}</span>
-        </div>
+            <time datetime="{{ $post->published_at?->toIso8601String() }}"
+                  style="font-size:.78rem;color:#9ca3af">
+                {{ $post->published_at?->format('Y.m.d') }}
+            </time>
+        </footer>
     </div>
 
     {{-- ── 사이드바: 목차 ── --}}
     @if(count($tocItems) >= 2)
     <aside class="post-sidebar">
         <div class="toc-box">
-            <p class="toc-title">목차</p>
-            <ul class="toc-list">
+            <h2 class="toc-title" id="toc-label">목차</h2>
+            <ul class="toc-list" aria-labelledby="toc-label">
                 @foreach($tocItems as $item)
                 <li class="{{ $item['level'] === 3 ? 'toc-h3' : '' }}">
                     <a href="#{{ $item['id'] }}">{{ $item['text'] }}</a>
