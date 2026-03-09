@@ -63,62 +63,69 @@
 
 @section('content')
 
-{{-- 브레드크럼 --}}
-<nav aria-label="브레드크럼" style="max-width:720px;margin:0 auto 20px">
-    <ol style="display:flex;align-items:center;gap:6px;list-style:none;font-size:.8rem;color:#94a3b8;flex-wrap:wrap">
-        <li><a href="{{ route('home') }}" style="color:#94a3b8" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='#94a3b8'">홈</a></li>
-        <li aria-hidden="true">›</li>
-        <li><a href="{{ route('posts.category', $post->category) }}" style="color:#94a3b8" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='#94a3b8'">{{ $post->category }}</a></li>
-        <li aria-hidden="true">›</li>
-        <li style="color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px" aria-current="page">{{ $post->title }}</li>
-    </ol>
-</nav>
+<div class="post-wrap">
 
-<article itemscope itemtype="https://schema.org/Article">
-    <meta itemprop="datePublished" content="{{ $post->published_at?->toIso8601String() }}">
-    <meta itemprop="dateModified"  content="{{ $post->updated_at->toIso8601String() }}">
-    <meta itemprop="author"        content="{{ $authorName }}">
+    {{-- 브레드크럼 --}}
+    <nav aria-label="브레드크럼" style="margin-bottom:20px">
+        <ol style="display:flex;align-items:center;gap:6px;list-style:none;font-size:.78rem;color:#9ca3af;flex-wrap:wrap">
+            <li><a href="{{ route('home') }}" style="color:#9ca3af;transition:color .15s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='#9ca3af'">홈</a></li>
+            <li aria-hidden="true" style="font-size:.65rem">›</li>
+            <li><a href="{{ route('posts.category', $post->category) }}" style="color:#9ca3af;transition:color .15s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='#9ca3af'">{{ $post->category }}</a></li>
+            <li aria-hidden="true" style="font-size:.65rem">›</li>
+            <li style="color:#6b7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px" aria-current="page">{{ $post->title }}</li>
+        </ol>
+    </nav>
 
-    <header class="post-header">
-        <div class="post-category">
-            <a href="{{ route('posts.category', $post->category) }}" style="color:inherit" itemprop="articleSection">{{ $post->category }}</a>
-        </div>
-        <h1 class="post-title" itemprop="headline">{{ $post->title }}</h1>
-        <div class="post-meta">
-            <time datetime="{{ $post->published_at?->toIso8601String() }}">
-                {{ $post->published_at?->format('Y년 m월 d일') }}
-            </time>
-            <span aria-hidden="true">·</span>
-            <span>읽기 약 {{ $post->reading_time }}분</span>
-        </div>
-    </header>
+    <article itemscope itemtype="https://schema.org/Article">
+        <meta itemprop="datePublished" content="{{ $post->published_at?->toIso8601String() }}">
+        <meta itemprop="dateModified"  content="{{ $post->updated_at->toIso8601String() }}">
+        <meta itemprop="author"        content="{{ $authorName }}">
 
-    <div class="post-content" itemprop="articleBody">
-        {!! nl2br(e($post->content)) !!}
-    </div>
-</article>
-
-{{-- 관련 글 --}}
-@if($related->isNotEmpty())
-<aside class="related" aria-label="관련 글">
-    <h2 class="related-title" style="font-size:1.15rem;font-weight:700;margin-bottom:18px">관련 글</h2>
-    <div class="related-grid">
-        @foreach($related as $r)
-        <a href="{{ route('posts.show', $r->slug) }}" class="card">
-            <div class="card-body" style="padding:16px">
-                <div class="card-category">{{ $r->category }}</div>
-                <div class="card-title" style="font-size:1rem">{{ $r->title }}</div>
-                <div class="card-meta">
-                    <time datetime="{{ $r->published_at?->toIso8601String() }}">{{ $r->published_at?->format('Y.m.d') }}</time>
-                </div>
+        {{-- 포스트 헤더 --}}
+        <header class="post-header">
+            <a href="{{ route('posts.category', $post->category) }}" class="post-category" itemprop="articleSection">
+                {{ $post->category }}
+            </a>
+            <h1 class="post-title" itemprop="headline">{{ $post->title }}</h1>
+            <div class="post-meta">
+                <time datetime="{{ $post->published_at?->toIso8601String() }}">
+                    {{ $post->published_at?->format('Y년 m월 d일') }}
+                </time>
+                <span class="dot">·</span>
+                <span>읽기 약 {{ $post->reading_time }}분</span>
             </div>
-        </a>
-        @endforeach
-    </div>
-</aside>
-@endif
+        </header>
 
-<div style="max-width:720px;margin:32px auto 0">
-    <a href="{{ route('home') }}" class="btn btn-secondary">← 목록으로</a>
+        {{-- 본문 --}}
+        <div class="post-content" itemprop="articleBody">
+            {!! $post->rendered_content !!}
+        </div>
+    </article>
+
+    {{-- 관련 글 --}}
+    @if($related->isNotEmpty())
+    <aside class="related" aria-label="관련 글">
+        <h2 style="font-size:1.1rem;font-weight:700;color:#111827;margin-bottom:16px">관련 글</h2>
+        <div class="related-grid">
+            @foreach($related as $r)
+            <a href="{{ route('posts.show', $r->slug) }}" class="card">
+                <div class="card-body" style="padding:16px">
+                    <div class="card-category">{{ $r->category }}</div>
+                    <div class="card-title" style="font-size:.95rem">{{ $r->title }}</div>
+                    <div class="card-meta" style="margin-top:10px">
+                        <time datetime="{{ $r->published_at?->toIso8601String() }}">{{ $r->published_at?->format('Y.m.d') }}</time>
+                    </div>
+                </div>
+            </a>
+            @endforeach
+        </div>
+    </aside>
+    @endif
+
+    {{-- 하단 버튼 --}}
+    <div style="margin-top:36px;padding-top:24px;border-top:1px solid #f3f4f6">
+        <a href="{{ route('home') }}" class="btn btn-secondary">← 목록으로</a>
+    </div>
+
 </div>
 @endsection

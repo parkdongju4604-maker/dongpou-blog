@@ -16,9 +16,17 @@
         </div>
 
         <div class="form-group">
-            <label class="form-label">내용 *</label>
-            <textarea name="content" class="form-control" style="min-height:460px"
-                      placeholder="글 내용을 입력하세요" required>{{ old('content', $post->content ?? '') }}</textarea>
+            <label class="form-label">
+                내용 *
+                <span class="hint" style="font-weight:400;color:#94a3b8;font-size:.75rem;margin-left:6px">
+                    마크다운 지원 — <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px;font-size:.75rem">## 제목</code>
+                    <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px;font-size:.75rem">**굵게**</code>
+                    <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px;font-size:.75rem">- 목록</code>
+                    <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px;font-size:.75rem">`코드`</code>
+                </span>
+            </label>
+            <textarea name="content" class="form-control" style="min-height:480px;font-family:'JetBrains Mono','Fira Code',monospace;font-size:.875rem;line-height:1.7"
+                      placeholder="마크다운 문법으로 글을 작성하세요..." required>{{ old('content', $post->content ?? '') }}</textarea>
         </div>
 
         <div class="form-group">

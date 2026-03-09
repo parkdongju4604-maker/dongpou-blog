@@ -6,7 +6,6 @@ use App\Models\Category;
 use App\Models\Post;
 use App\Models\Setting;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
@@ -75,7 +74,7 @@ class PostController extends Controller
             'published' => 'boolean',
         ]);
 
-        $data['slug']      = Str::slug($data['title']) ?: Str::random(8);
+        $data['slug']      = Post::makeSlug($data['title']);
         $data['published'] = $request->boolean('published');
         if ($data['published']) {
             $data['published_at'] = now();

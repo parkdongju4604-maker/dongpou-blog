@@ -152,21 +152,47 @@
         .card-meta { font-size: .75rem; color: #999; display: flex; gap: 10px; flex-wrap: wrap; }
 
         /* ── 글 상세 ── */
-        .post-header { max-width: 720px; margin: 0 auto 36px; }
-        .post-category { font-size: .78rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-        .post-title { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 800; line-height: 1.3; color: #1a1a1a; margin-bottom: 14px; word-break: keep-all; }
-        .post-meta { font-size: .83rem; color: #999; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
-        .post-content { max-width: 720px; margin: 0 auto; font-size: 1.05rem; line-height: 1.9; word-break: keep-all; }
-        .post-content h2 { font-size: clamp(1.2rem, 3vw, 1.5rem); font-weight: 700; margin: 2rem 0 1rem; color: #1a1a1a; }
-        .post-content h3 { font-size: clamp(1.05rem, 2.5vw, 1.2rem); font-weight: 600; margin: 1.5rem 0 .8rem; }
-        .post-content p { margin-bottom: 1.2rem; }
-        .post-content ul, .post-content ol { margin: 0 0 1.2rem 1.5rem; }
-        .post-content li { margin-bottom: .4rem; }
-        .post-content code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: .9em; word-break: break-all; }
-        .post-content pre { background: #1e1e1e; color: #d4d4d4; padding: 18px; border-radius: 8px; overflow-x: auto; margin-bottom: 1.2rem; font-size: .9rem; }
-        .post-content blockquote { border-left: 4px solid var(--primary); padding: 12px 18px; background: var(--primary-light); border-radius: 0 8px 8px 0; margin-bottom: 1.2rem; color: #444; }
-        .post-content img { border-radius: 8px; margin: 1rem auto; }
+        .post-wrap { max-width: 720px; margin: 0 auto; }
+        .post-header { margin-bottom: 0; padding-bottom: 28px; border-bottom: 1px solid #e5e7eb; }
+        .post-category { font-size: .75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 14px; display: inline-block; }
+        .post-title { font-size: clamp(1.65rem, 4vw, 2.3rem); font-weight: 800; line-height: 1.35; color: #111827; margin-bottom: 16px; word-break: keep-all; letter-spacing: -.3px; }
+        .post-meta { font-size: .82rem; color: #9ca3af; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .post-meta .dot { color: #d1d5db; }
+
+        /* 본문 */
+        .post-content { font-size: 1.05rem; line-height: 1.95; color: #374151; word-break: keep-all; padding-top: 32px; }
+        .post-content > *:first-child { margin-top: 0; }
+        .post-content h1,
+        .post-content h2 { font-size: clamp(1.2rem, 2.8vw, 1.5rem); font-weight: 700; color: #111827; margin: 2.4rem 0 1rem; padding-bottom: 8px; border-bottom: 2px solid #f3f4f6; letter-spacing: -.2px; }
+        .post-content h3 { font-size: clamp(1.05rem, 2.5vw, 1.2rem); font-weight: 700; color: #1f2937; margin: 2rem 0 .75rem; }
+        .post-content h4 { font-size: 1rem; font-weight: 700; color: #374151; margin: 1.5rem 0 .5rem; }
+        .post-content p { margin-bottom: 1.4rem; }
+        .post-content strong { font-weight: 700; color: #111827; }
+        .post-content em { font-style: italic; color: #4b5563; }
+        .post-content ul { list-style: none; margin: 0 0 1.4rem; padding: 0; }
+        .post-content ul li { padding-left: 1.4rem; position: relative; margin-bottom: .5rem; }
+        .post-content ul li::before { content: ''; position: absolute; left: 0; top: .7em; width: 6px; height: 6px; background: var(--primary); border-radius: 50%; }
+        .post-content ol { margin: 0 0 1.4rem 1.5rem; padding: 0; }
+        .post-content ol li { margin-bottom: .5rem; padding-left: .25rem; }
+        .post-content li > ul, .post-content li > ol { margin-top: .4rem; margin-bottom: .4rem; }
         .post-content a { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+        .post-content a:hover { opacity: .75; }
+        .post-content hr { border: none; border-top: 2px solid #f3f4f6; margin: 2.5rem 0; }
+        /* 인라인 코드 */
+        .post-content code { background: #f3f4f6; color: #ef4444; padding: 2px 7px; border-radius: 5px; font-size: .875em; font-family: 'JetBrains Mono', 'Fira Code', monospace; word-break: break-all; }
+        /* 코드 블록 */
+        .post-content pre { background: #1e293b; border-radius: 10px; padding: 20px 22px; overflow-x: auto; margin-bottom: 1.6rem; }
+        .post-content pre code { background: none; color: #e2e8f0; padding: 0; font-size: .875rem; line-height: 1.7; word-break: normal; }
+        /* 인용구 */
+        .post-content blockquote { border-left: 4px solid var(--primary); padding: 14px 20px; background: var(--primary-light); border-radius: 0 10px 10px 0; margin: 0 0 1.4rem; color: #4b5563; }
+        .post-content blockquote p:last-child { margin-bottom: 0; }
+        /* 이미지 */
+        .post-content img { border-radius: 10px; margin: 1.5rem auto; box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+        /* 표 */
+        .post-content table { width: 100%; border-collapse: collapse; margin-bottom: 1.6rem; font-size: .9rem; }
+        .post-content th { background: #f9fafb; font-weight: 700; color: #374151; padding: 10px 14px; border: 1px solid #e5e7eb; text-align: left; }
+        .post-content td { padding: 9px 14px; border: 1px solid #e5e7eb; color: #4b5563; }
+        .post-content tr:nth-child(even) td { background: #f9fafb; }
 
         /* ── 히어로 ── */
         .hero { text-align: center; padding: 52px 0 44px; }
