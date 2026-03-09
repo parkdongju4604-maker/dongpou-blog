@@ -1,8 +1,9 @@
 <?php
 
 use App\Http\Controllers\AdminAuthController;
-use App\Http\Controllers\Admin\StatsController;
+use App\Http\Controllers\Admin\ApiTokenController;
 use App\Http\Controllers\Admin\CssThemeController;
+use App\Http\Controllers\Admin\StatsController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ImageUploadController;
@@ -67,6 +68,14 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
     // 사이트 설정
     Route::get('/settings', [SettingController::class, 'index'])->name('settings');
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
+
+    // API 토큰 관리
+    Route::get('/api-tokens',              [ApiTokenController::class, 'index'])->name('api-tokens.index');
+    Route::post('/api-tokens',             [ApiTokenController::class, 'store'])->name('api-tokens.store');
+    Route::delete('/api-tokens/{apiToken}',[ApiTokenController::class, 'destroy'])->name('api-tokens.destroy');
+
+    // API 문서
+    Route::get('/api-docs', [ApiTokenController::class, 'docs'])->name('api-docs');
 
     // 이미지 업로드 (그룹 prefix 'admin.' 이 자동 붙으므로 여기선 upload.image 만)
     Route::post('/upload/image', [ImageUploadController::class, 'store'])->name('upload.image');
