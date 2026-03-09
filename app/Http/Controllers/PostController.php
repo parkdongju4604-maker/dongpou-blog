@@ -16,7 +16,7 @@ class PostController extends Controller
     {
         $perPage    = (int) Setting::get('posts_per_page', 9);
         $posts      = Post::published()->paginate($perPage);
-        $categories = Post::published()->distinct()->pluck('category');
+        $categories = Post::published()->reorder()->distinct()->pluck('category');
         return view('posts.index', compact('posts', 'categories'));
     }
 
@@ -24,7 +24,7 @@ class PostController extends Controller
     {
         $perPage    = (int) Setting::get('posts_per_page', 9);
         $posts      = Post::published()->where('category', $category)->paginate($perPage);
-        $categories = Post::published()->distinct()->pluck('category');
+        $categories = Post::published()->reorder()->distinct()->pluck('category');
         return view('posts.index', compact('posts', 'categories', 'category'));
     }
 
