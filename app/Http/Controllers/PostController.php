@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Comment;
 use App\Models\Post;
 use App\Models\Setting;
 use Carbon\Carbon;
@@ -50,7 +51,15 @@ class PostController extends Controller
             ->reorder()->orderBy('published_at')
             ->first(['id', 'title', 'slug', 'category']);
 
-        return view('posts.show', compact('post', 'related', 'prevPost', 'nextPost'));
+        // 승인된 최상위 댓글 + 대댓글 eager loading
+        $comments = Comment::with(['replies'])
+            ->where('post_id', $post->id)
+            ->visible()
+            ->topLevel()
+            ->orderBy('created_at')
+            ->get();
+
+        return view('posts.show', compact('post', 'related', 'prevPost', 'nextPost', 'comments'));
     }
 
     // ── 관리자 라우트 ────────────────────────────

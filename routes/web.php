@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\Admin\ApiTokenController;
+use App\Http\Controllers\Admin\CommentController as AdminCommentController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\Admin\CssThemeController;
 use App\Http\Controllers\Admin\StatsController;
 use App\Http\Controllers\SearchController;
@@ -20,6 +22,10 @@ Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show')
 
 // ── 검색
 Route::get('/search', [SearchController::class, 'index'])->name('search');
+
+// ── 댓글
+Route::post('/posts/{post}/comments',      [CommentController::class, 'store'])->name('comments.store');
+Route::delete('/comments/{comment}',       [CommentController::class, 'destroy'])->name('comments.destroy');
 
 // ── SEO
 Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->name('sitemap');
@@ -68,6 +74,13 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
     // 사이트 설정
     Route::get('/settings', [SettingController::class, 'index'])->name('settings');
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
+
+    // 댓글 관리
+    Route::get('/comments',                        [AdminCommentController::class, 'index'])->name('comments.index');
+    Route::patch('/comments/{comment}/approve',    [AdminCommentController::class, 'approve'])->name('comments.approve');
+    Route::patch('/comments/{comment}/spam',       [AdminCommentController::class, 'spam'])->name('comments.spam');
+    Route::delete('/comments/{comment}',           [AdminCommentController::class, 'destroy'])->name('comments.destroy');
+    Route::delete('/comments-spam/purge',          [AdminCommentController::class, 'destroySpam'])->name('comments.purge-spam');
 
     // API 토큰 관리
     Route::get('/api-tokens',              [ApiTokenController::class, 'index'])->name('api-tokens.index');

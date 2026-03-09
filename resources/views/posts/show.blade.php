@@ -234,6 +234,81 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
 @media (max-width: 480px) {
     .share-btn { padding: 8px 14px; font-size: .8rem; }
 }
+
+/* ── 댓글 섹션 ── */
+.comments-section { margin-top: 48px; padding-top: 36px; border-top: 1px solid var(--border, #e5e7eb); }
+.comments-title { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-bottom: 28px; }
+.comment-count { font-size: .85rem; font-weight: 500; color: #94a3b8; margin-left: 6px; }
+
+/* 댓글 카드 */
+.comment-item { display: flex; gap: 12px; margin-bottom: 20px; }
+.comment-avatar {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--primary, #4f46e5), #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem; font-weight: 700; color: #fff;
+}
+.comment-body-wrap { flex: 1; min-width: 0; }
+.comment-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.comment-author { font-weight: 700; font-size: .875rem; color: #1e293b; }
+.comment-date { font-size: .76rem; color: #94a3b8; }
+.comment-text { font-size: .9rem; line-height: 1.7; color: #374151; white-space: pre-wrap; word-break: break-word; }
+.comment-actions { display: flex; gap: 10px; margin-top: 8px; }
+.comment-action-btn {
+    font-size: .75rem; color: #94a3b8; background: none; border: none;
+    cursor: pointer; padding: 0; transition: color .12s;
+}
+.comment-action-btn:hover { color: var(--primary, #4f46e5); }
+
+/* 대댓글 */
+.replies-wrap { margin-top: 12px; padding-left: 16px; border-left: 2px solid var(--border, #e5e7eb); }
+
+/* 답글 폼 (인라인) */
+.reply-form-wrap {
+    margin-top: 12px; background: #f9f9fc; border-radius: 10px;
+    padding: 14px; display: none; border: 1.5px solid var(--border, #e5e7eb);
+}
+.reply-form-wrap.open { display: block; }
+
+/* 삭제 폼 */
+.delete-form-wrap {
+    margin-top: 8px; background: #fff5f5; border-radius: 8px;
+    padding: 10px 12px; display: none; border: 1px solid #fecaca;
+}
+.delete-form-wrap.open { display: block; }
+.delete-form-wrap form { display: flex; gap: 8px; align-items: center; }
+.delete-form-wrap input {
+    flex: 1; padding: 6px 10px; border: 1px solid #fecaca; border-radius: 6px;
+    font-size: .83rem; outline: none;
+}
+.delete-form-wrap button[type=submit] {
+    padding: 6px 14px; background: #ef4444; color: #fff; border: none;
+    border-radius: 6px; font-size: .8rem; font-weight: 600; cursor: pointer;
+}
+.delete-error { font-size: .78rem; color: #dc2626; margin-top: 4px; }
+
+/* 댓글 작성 폼 */
+.comment-form-section { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--border, #e5e7eb); }
+.comment-form-title { font-size: .95rem; font-weight: 700; color: #1e293b; margin-bottom: 16px; }
+.comment-form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.comment-form-grid input,
+.comment-form textarea {
+    padding: 9px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+    font-size: .875rem; outline: none; width: 100%;
+    transition: border-color .12s; font-family: inherit;
+}
+.comment-form-grid input:focus,
+.comment-form textarea:focus { border-color: var(--primary, #4f46e5); }
+.comment-form textarea { resize: vertical; min-height: 100px; margin-bottom: 10px; }
+.comment-notice {
+    padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: .875rem; font-weight: 500;
+    background: #f0fdf4; color: #166534; border: 1px solid #86efac;
+}
+.comment-notice.warn { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+
+@media (max-width: 600px) {
+    .comment-form-grid { grid-template-columns: 1fr; }
+}
 </style>
 <style>
 /* hljs 자체 배경·패딩 제거 → 기존 pre 스타일 유지 */
@@ -457,6 +532,145 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
             </div>
         </div>
 
+        {{-- 댓글 섹션 --}}
+        <section class="comments-section" id="comments">
+
+            {{-- 알림 --}}
+            @if(session('comment_notice'))
+            <div class="comment-notice {{ str_contains(session('comment_notice'),'스팸') ? 'warn' : '' }}">
+                {{ session('comment_notice') }}
+            </div>
+            @endif
+
+            <h2 class="comments-title">
+                댓글
+                <span class="comment-count">{{ $comments->count() + $comments->sum(fn($c) => $c->replies->count()) }}개</span>
+            </h2>
+
+            {{-- 댓글 목록 --}}
+            @forelse($comments as $comment)
+            <div class="comment-item" id="comment-{{ $comment->id }}">
+                <div class="comment-avatar">{{ mb_substr($comment->author_name, 0, 1) }}</div>
+                <div class="comment-body-wrap">
+                    <div class="comment-meta">
+                        <span class="comment-author">{{ $comment->author_name }}</span>
+                        <span class="comment-date">{{ $comment->created_at->diffForHumans() }}</span>
+                    </div>
+                    <div class="comment-text">{{ $comment->content }}</div>
+                    <div class="comment-actions">
+                        <button class="comment-action-btn" onclick="toggleReplyForm({{ $comment->id }})">💬 답글</button>
+                        @if($comment->password_hash)
+                        <button class="comment-action-btn" onclick="toggleDeleteForm('c{{ $comment->id }}')">🗑 삭제</button>
+                        @endif
+                    </div>
+
+                    {{-- 삭제 폼 --}}
+                    @if($comment->password_hash)
+                    <div class="delete-form-wrap" id="del-c{{ $comment->id }}">
+                        <form action="{{ route('comments.destroy', $comment) }}" method="POST">
+                            @csrf @method('DELETE')
+                            <input type="password" name="password" placeholder="비밀번호 입력" autocomplete="off">
+                            <button type="submit">삭제</button>
+                        </form>
+                        @error('delete_' . $comment->id)
+                        <p class="delete-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    @endif
+
+                    {{-- 대댓글 목록 --}}
+                    @if($comment->replies->isNotEmpty())
+                    <div class="replies-wrap">
+                        @foreach($comment->replies as $reply)
+                        <div class="comment-item" id="comment-{{ $reply->id }}" style="margin-bottom:14px">
+                            <div class="comment-avatar" style="width:30px;height:30px;font-size:.75rem">{{ mb_substr($reply->author_name, 0, 1) }}</div>
+                            <div class="comment-body-wrap">
+                                <div class="comment-meta">
+                                    <span class="comment-author">{{ $reply->author_name }}</span>
+                                    <span class="comment-date">{{ $reply->created_at->diffForHumans() }}</span>
+                                </div>
+                                <div class="comment-text">{{ $reply->content }}</div>
+                                @if($reply->password_hash)
+                                <div class="comment-actions">
+                                    <button class="comment-action-btn" onclick="toggleDeleteForm('c{{ $reply->id }}')">🗑 삭제</button>
+                                </div>
+                                <div class="delete-form-wrap" id="del-c{{ $reply->id }}">
+                                    <form action="{{ route('comments.destroy', $reply) }}" method="POST">
+                                        @csrf @method('DELETE')
+                                        <input type="password" name="password" placeholder="비밀번호 입력" autocomplete="off">
+                                        <button type="submit">삭제</button>
+                                    </form>
+                                    @error('delete_' . $reply->id)
+                                    <p class="delete-error">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                    @endif
+
+                    {{-- 답글 작성 폼 --}}
+                    <div class="reply-form-wrap" id="reply-form-{{ $comment->id }}">
+                        <form action="{{ route('comments.store', $post) }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="parent_id" value="{{ $comment->id }}">
+                            <input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off">
+                            <div class="comment-form-grid" style="grid-template-columns:1fr 1fr 1fr">
+                                <input type="text"     name="author_name"  placeholder="이름 *" required maxlength="50">
+                                <input type="email"    name="author_email" placeholder="이메일 (비공개)">
+                                <input type="password" name="password"     placeholder="비밀번호 (삭제용)" minlength="4">
+                            </div>
+                            <textarea name="content" placeholder="답글을 입력하세요..." required minlength="2" maxlength="2000" style="min-height:70px"></textarea>
+                            <div style="display:flex;gap:8px;justify-content:flex-end">
+                                <button type="button" class="btn btn-secondary btn-sm"
+                                        onclick="toggleReplyForm({{ $comment->id }})">취소</button>
+                                <button type="submit" class="btn btn-primary btn-sm">답글 달기</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            @empty
+            <p style="color:#94a3b8;font-size:.9rem;text-align:center;padding:20px 0 28px">
+                첫 번째 댓글을 남겨보세요! 👋
+            </p>
+            @endforelse
+
+            {{-- 댓글 작성 폼 --}}
+            <div class="comment-form-section" id="comment-form">
+                <h3 class="comment-form-title">✏️ 댓글 작성</h3>
+                <form action="{{ route('comments.store', $post) }}" method="POST">
+                    @csrf
+                    {{-- 허니팟 (숨김) --}}
+                    <input type="text" name="website" style="display:none;position:absolute" tabindex="-1" autocomplete="off">
+                    <div class="comment-form-grid">
+                        <div>
+                            <input type="text" name="author_name" placeholder="이름 *" required maxlength="50"
+                                   value="{{ old('author_name') }}">
+                            @error('author_name')<p style="font-size:.73rem;color:#ef4444;margin-top:3px">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <input type="email" name="author_email" placeholder="이메일 (비공개, 선택)"
+                                   value="{{ old('author_email') }}">
+                        </div>
+                        <div>
+                            <input type="password" name="password" placeholder="비밀번호 (삭제용, 선택)" minlength="4">
+                            <p style="font-size:.71rem;color:#94a3b8;margin-top:3px">비밀번호 설정 시 본인 삭제 가능</p>
+                        </div>
+                    </div>
+                    <textarea name="content" placeholder="댓글을 입력하세요... (2000자 이내)"
+                              required minlength="2" maxlength="2000">{{ old('content') }}</textarea>
+                    @error('content')<p style="font-size:.73rem;color:#ef4444;margin-top:-6px;margin-bottom:8px">{{ $message }}</p>@enderror
+                    <div style="display:flex;justify-content:flex-end">
+                        <button type="submit" class="btn btn-primary">댓글 달기</button>
+                    </div>
+                </form>
+            </div>
+
+        </section>
+
         {{-- 하단 --}}
         <footer class="post-footer">
             <a href="{{ route('home') }}" class="btn btn-secondary">← 목록으로</a>
@@ -508,6 +722,26 @@ document.getElementById('kakao-share-btn')?.addEventListener('click', function (
 @endif
 
 <script>
+// 답글 폼 토글
+function toggleReplyForm(id) {
+    const el = document.getElementById('reply-form-' + id);
+    if (!el) return;
+    el.classList.toggle('open');
+    if (el.classList.contains('open')) {
+        el.querySelector('input[name="author_name"]')?.focus();
+    }
+}
+
+// 삭제 폼 토글
+function toggleDeleteForm(id) {
+    const el = document.getElementById('del-' + id);
+    if (!el) return;
+    el.classList.toggle('open');
+    if (el.classList.contains('open')) {
+        el.querySelector('input[type="password"]')?.focus();
+    }
+}
+
 // 링크 복사
 document.getElementById('copy-link-btn')?.addEventListener('click', function () {
     const url  = this.dataset.url;

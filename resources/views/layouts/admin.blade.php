@@ -212,6 +212,21 @@
         </div>
 
         <div class="nav-section">
+            <div class="nav-label">커뮤니티</div>
+            <a href="{{ route('admin.comments.index') }}"
+               class="nav-item {{ request()->routeIs('admin.comments.*') ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                댓글 관리
+                @php $pendingComments = \App\Models\Comment::where('is_approved',false)->where('is_spam',false)->count(); @endphp
+                @if($pendingComments > 0)
+                    <span style="margin-left:auto;background:#ef4444;color:#fff;font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:10px">{{ $pendingComments }}</span>
+                @endif
+            </a>
+        </div>
+
+        <div class="nav-section">
             <div class="nav-label">분석</div>
             <a href="{{ route('admin.stats.index') }}"
                class="nav-item {{ request()->routeIs('admin.stats.*') ? 'active' : '' }}">
