@@ -12,7 +12,7 @@ class PostController extends Controller
     public function index()
     {
         $posts = Post::published()->paginate(9);
-        $categories = Post::published()->select('category')->distinct()->pluck('category');
+        $categories = Post::where('published', true)->distinct()->pluck('category');
         return view('posts.index', compact('posts', 'categories'));
     }
 
@@ -20,7 +20,7 @@ class PostController extends Controller
     public function category(string $category)
     {
         $posts = Post::published()->where('category', $category)->paginate(9);
-        $categories = Post::published()->select('category')->distinct()->pluck('category');
+        $categories = Post::where('published', true)->distinct()->pluck('category');
         return view('posts.index', compact('posts', 'categories', 'category'));
     }
 
