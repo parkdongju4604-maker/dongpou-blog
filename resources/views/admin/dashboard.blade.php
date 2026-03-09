@@ -15,6 +15,11 @@
         <div class="stat-sub">게시 중</div>
     </div>
     <div class="stat-card">
+        <div class="stat-label">예약 발행</div>
+        <div class="stat-value" style="color:#d97706">{{ $scheduledPosts }}</div>
+        <div class="stat-sub">발행 예정</div>
+    </div>
+    <div class="stat-card">
         <div class="stat-label">임시저장</div>
         <div class="stat-value">{{ $draftPosts }}</div>
         <div class="stat-sub">비공개</div>
@@ -52,8 +57,12 @@
                         </td>
                         <td><span class="badge badge-purple">{{ $post->category }}</span></td>
                         <td>
-                            @if($post->published)
-                                <span class="badge badge-green">공개</span>
+                            @if($post->status === 'published')
+                                <span class="badge badge-green">발행됨</span>
+                            @elseif($post->status === 'scheduled')
+                                <span class="badge" style="background:#fffbeb;color:#92400e;border:1px solid #fde68a;white-space:nowrap;font-size:.68rem">
+                                    ⏰ {{ $post->published_at->format('m.d H:i') }}
+                                </span>
                             @else
                                 <span class="badge badge-gray">임시저장</span>
                             @endif

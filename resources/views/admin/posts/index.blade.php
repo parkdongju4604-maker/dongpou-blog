@@ -32,8 +32,12 @@
                     </td>
                     <td><span class="badge badge-purple">{{ $post->category }}</span></td>
                     <td>
-                        @if($post->published)
-                            <span class="badge badge-green">공개</span>
+                        @if($post->status === 'published')
+                            <span class="badge badge-green">발행됨</span>
+                        @elseif($post->status === 'scheduled')
+                            <span class="badge" style="background:#fffbeb;color:#92400e;border:1px solid #fde68a;white-space:nowrap">
+                                ⏰ {{ $post->published_at->format('m.d H:i') }}
+                            </span>
                         @else
                             <span class="badge badge-gray">임시저장</span>
                         @endif

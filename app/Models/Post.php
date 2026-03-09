@@ -67,7 +67,20 @@ class Post extends Model
 
     public function scopePublished($query)
     {
-        return $query->where('published', true)->orderByDesc('published_at');
+        return $query
+            ->where('published', true)
+            ->where('published_at', '<=', now())
+            ->orderByDesc('published_at');
+    }
+
+    /**
+     * 포스트 상태: draft / scheduled / published
+     */
+    public function getStatusAttribute(): string
+    {
+        if (!$this->published) return 'draft';
+        if ($this->published_at && $this->published_at->isFuture()) return 'scheduled';
+        return 'published';
     }
 
     /**

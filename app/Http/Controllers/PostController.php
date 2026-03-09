@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\Setting;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
@@ -15,7 +16,7 @@ class PostController extends Controller
     {
         $perPage    = (int) Setting::get('posts_per_page', 9);
         $posts      = Post::published()->paginate($perPage);
-        $categories = Post::where('published', true)->distinct()->pluck('category');
+        $categories = Post::published()->distinct()->pluck('category');
         return view('posts.index', compact('posts', 'categories'));
     }
 
@@ -23,13 +24,13 @@ class PostController extends Controller
     {
         $perPage    = (int) Setting::get('posts_per_page', 9);
         $posts      = Post::published()->where('category', $category)->paginate($perPage);
-        $categories = Post::where('published', true)->distinct()->pluck('category');
+        $categories = Post::published()->distinct()->pluck('category');
         return view('posts.index', compact('posts', 'categories', 'category'));
     }
 
     public function show(string $slug)
     {
-        $post    = Post::where('slug', $slug)->where('published', true)->firstOrFail();
+        $post    = Post::published()->where('slug', $slug)->firstOrFail();
         $related = Post::published()
             ->where('category', $post->category)
             ->where('id', '!=', $post->id)
@@ -43,7 +44,8 @@ class PostController extends Controller
     {
         return view('admin.dashboard', [
             'totalPosts'      => Post::count(),
-            'publishedPosts'  => Post::where('published', true)->count(),
+            'publishedPosts'  => Post::published()->count(),
+            'scheduledPosts'  => Post::where('published', true)->where('published_at', '>', now())->count(),
             'draftPosts'      => Post::where('published', false)->count(),
             'totalCategories' => Category::count(),
             'recentPosts'     => Post::orderByDesc('created_at')->limit(8)->get(),
@@ -66,21 +68,30 @@ class PostController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'title'     => 'required|max:255',
-            'content'   => 'required',
-            'excerpt'   => 'nullable|max:500',
-            'category'  => 'required|max:100',
-            'published' => 'boolean',
+        $request->validate([
+            'title'        => 'required|max:255',
+            'content'      => 'required',
+            'excerpt'      => 'nullable|max:500',
+            'category'     => 'required|max:100',
+            'publish_type' => 'required|in:draft,publish,schedule',
+            'scheduled_at' => 'required_if:publish_type,schedule|nullable|date|after:now',
+        ], [
+            'scheduled_at.required_if' => '예약 발행 날짜/시간을 입력해주세요.',
+            'scheduled_at.after'       => '예약 시간은 현재 시간 이후여야 합니다.',
         ]);
 
-        $data['slug']      = Post::makeSlug($data['title']);
-        $data['published'] = $request->boolean('published');
-        if ($data['published']) {
-            $data['published_at'] = now();
-        }
+        [$published, $publishedAt] = $this->resolvePublishState($request);
 
-        Post::create($data);
+        Post::create([
+            'title'        => $request->title,
+            'slug'         => Post::makeSlug($request->title),
+            'content'      => $request->content,
+            'excerpt'      => $request->excerpt,
+            'category'     => $request->category,
+            'published'    => $published,
+            'published_at' => $publishedAt,
+        ]);
+
         return redirect()->route('admin.posts.index')->with('success', '글이 등록되었습니다.');
     }
 
@@ -92,21 +103,42 @@ class PostController extends Controller
 
     public function update(Request $request, Post $post)
     {
-        $data = $request->validate([
-            'title'     => 'required|max:255',
-            'content'   => 'required',
-            'excerpt'   => 'nullable|max:500',
-            'category'  => 'required|max:100',
-            'published' => 'boolean',
+        $request->validate([
+            'title'        => 'required|max:255',
+            'content'      => 'required',
+            'excerpt'      => 'nullable|max:500',
+            'category'     => 'required|max:100',
+            'publish_type' => 'required|in:draft,publish,schedule',
+            'scheduled_at' => 'required_if:publish_type,schedule|nullable|date|after:now',
+        ], [
+            'scheduled_at.required_if' => '예약 발행 날짜/시간을 입력해주세요.',
+            'scheduled_at.after'       => '예약 시간은 현재 시간 이후여야 합니다.',
         ]);
 
-        $data['published'] = $request->boolean('published');
-        if ($data['published'] && !$post->published_at) {
-            $data['published_at'] = now();
-        }
+        [$published, $publishedAt] = $this->resolvePublishState($request);
 
-        $post->update($data);
+        $post->update([
+            'title'        => $request->title,
+            'content'      => $request->content,
+            'excerpt'      => $request->excerpt,
+            'category'     => $request->category,
+            'published'    => $published,
+            'published_at' => $publishedAt,
+        ]);
+
         return redirect()->route('admin.posts.index')->with('success', '수정되었습니다.');
+    }
+
+    /**
+     * publish_type → (published, published_at) 변환
+     */
+    private function resolvePublishState(Request $request): array
+    {
+        return match ($request->publish_type) {
+            'publish'  => [true,  now()],
+            'schedule' => [true,  Carbon::parse($request->scheduled_at)],
+            default    => [false, null],  // draft
+        };
     }
 
     public function destroy(Post $post)

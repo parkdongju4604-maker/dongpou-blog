@@ -144,13 +144,65 @@
         <div class="card">
             <div class="card-header" style="padding:12px 16px"><h3 style="font-size:.875rem">발행 설정</h3></div>
             <div class="card-body" style="padding:14px 16px">
-                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.875rem;font-weight:500">
-                    <input type="checkbox" name="published" value="1"
-                           {{ old('published', $post->published ?? false) ? 'checked' : '' }}
-                           style="width:16px;height:16px;accent-color:#4f46e5">
-                    공개 게시
-                </label>
-                <p style="font-size:.75rem;color:#94a3b8;margin-top:6px;line-height:1.5">체크 해제 시 임시저장</p>
+                @php
+                    $currentType = old('publish_type',
+                        isset($post)
+                            ? ($post->status === 'scheduled' ? 'schedule' : ($post->published ? 'publish' : 'draft'))
+                            : 'draft'
+                    );
+                    $currentScheduledAt = old('scheduled_at',
+                        isset($post) && $post->status === 'scheduled'
+                            ? $post->published_at?->format('Y-m-d\TH:i')
+                            : ''
+                    );
+                @endphp
+
+                {{-- 3가지 상태 라디오 --}}
+                <div style="display:flex;flex-direction:column;gap:10px">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.875rem;font-weight:500;padding:9px 12px;border-radius:8px;border:1.5px solid {{ $currentType==='draft' ? '#6366f1' : '#e2e8f0' }};transition:border .15s" id="label-draft">
+                        <input type="radio" name="publish_type" value="draft"
+                               {{ $currentType === 'draft' ? 'checked' : '' }}
+                               style="accent-color:#6366f1" onchange="onPublishTypeChange()">
+                        <span>🗒 임시저장</span>
+                        <span style="font-size:.72rem;color:#94a3b8;font-weight:400;margin-left:auto">비공개</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.875rem;font-weight:500;padding:9px 12px;border-radius:8px;border:1.5px solid {{ $currentType==='publish' ? '#6366f1' : '#e2e8f0' }};transition:border .15s" id="label-publish">
+                        <input type="radio" name="publish_type" value="publish"
+                               {{ $currentType === 'publish' ? 'checked' : '' }}
+                               style="accent-color:#6366f1" onchange="onPublishTypeChange()">
+                        <span>🌐 즉시 발행</span>
+                        <span style="font-size:.72rem;color:#10b981;font-weight:400;margin-left:auto">공개</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.875rem;font-weight:500;padding:9px 12px;border-radius:8px;border:1.5px solid {{ $currentType==='schedule' ? '#6366f1' : '#e2e8f0' }};transition:border .15s" id="label-schedule">
+                        <input type="radio" name="publish_type" value="schedule"
+                               {{ $currentType === 'schedule' ? 'checked' : '' }}
+                               style="accent-color:#6366f1" onchange="onPublishTypeChange()">
+                        <span>⏰ 예약 발행</span>
+                        <span style="font-size:.72rem;color:#f59e0b;font-weight:400;margin-left:auto">예약</span>
+                    </label>
+                </div>
+
+                {{-- 예약 날짜 피커 --}}
+                <div id="schedule-picker" style="margin-top:12px;display:{{ $currentType==='schedule' ? 'block' : 'none' }}">
+                    <label style="font-size:.75rem;font-weight:600;color:#64748b;display:block;margin-bottom:5px">
+                        발행 날짜 / 시간
+                    </label>
+                    <input type="datetime-local" name="scheduled_at"
+                           value="{{ $currentScheduledAt }}"
+                           min="{{ now()->addMinutes(5)->format('Y-m-d\TH:i') }}"
+                           style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.85rem;outline:none;transition:border .15s"
+                           onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'">
+                    @error('scheduled_at')
+                        <p style="font-size:.75rem;color:#ef4444;margin-top:4px">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- 현재 예약 정보 표시 --}}
+                @if(isset($post) && $post->status === 'scheduled')
+                    <div style="margin-top:10px;padding:8px 10px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;font-size:.78rem;color:#92400e;">
+                        ⏰ 예약됨: {{ $post->published_at->format('Y.m.d H:i') }}
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -358,4 +410,25 @@
         if (e.key === 'Tab') { e.preventDefault(); editor.focus(); }
     });
 })();
+
+// ── 발행 타입 변경 핸들러 ──
+function onPublishTypeChange() {
+    const type    = document.querySelector('input[name="publish_type"]:checked')?.value;
+    const picker  = document.getElementById('schedule-picker');
+    const labels  = { draft: 'label-draft', publish: 'label-publish', schedule: 'label-schedule' };
+
+    // 피커 토글
+    picker.style.display = type === 'schedule' ? 'block' : 'none';
+    if (type !== 'schedule') {
+        document.querySelector('input[name="scheduled_at"]').value = '';
+    }
+
+    // 라디오 카드 테두리 강조
+    Object.values(labels).forEach(id => {
+        document.getElementById(id).style.borderColor = '#e2e8f0';
+    });
+    if (labels[type]) {
+        document.getElementById(labels[type]).style.borderColor = '#6366f1';
+    }
+}
 </script>
