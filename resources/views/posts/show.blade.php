@@ -39,15 +39,15 @@
 
 @extends('layouts.app')
 
-@section('title'){{ $post->title . ' — ' . $blogName }}@endsection
-@section('description'){{ $excerpt }}@endsection
-@section('author'){{ $authorName }}@endsection
-@section('canonical'){{ $postUrl }}@endsection
-@section('og:type')article@endsection
-@section('og:title'){{ $post->title }}@endsection
-@section('og:description'){{ $excerpt }}@endsection
+@section('title', $post->title . ' — ' . $blogName)
+@section('description', $excerpt)
+@section('author', $authorName)
+@section('canonical', $postUrl)
+@section('og:type', 'article')
+@section('og:title', $post->title)
+@section('og:description', $excerpt)
 @if($ogImgDefault)
-@section('og:image'){{ $ogImgDefault }}@endsection
+@section('og:image', $ogImgDefault)
 @endif
 
 @push('jsonld')
