@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\AdminAuthController;
 use Illuminate\Support\Facades\Route;
 
 // 블로그 공개 라우트
@@ -8,8 +9,13 @@ Route::get('/', [PostController::class, 'index'])->name('home');
 Route::get('/category/{category}', [PostController::class, 'category'])->name('posts.category');
 Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show');
 
-// 관리자 라우트
-Route::prefix('admin')->name('admin.')->group(function () {
+// 관리자 로그인/로그아웃 (인증 불필요)
+Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
+Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
+Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
+
+// 관리자 라우트 (인증 필요)
+Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function () {
     Route::get('/posts', [PostController::class, 'adminIndex'])->name('posts.index');
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');

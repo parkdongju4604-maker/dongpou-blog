@@ -17,6 +17,8 @@
         .logo span { color: #4f46e5; }
         nav a { margin-left: 24px; font-size: .9rem; color: #555; transition: color .2s; }
         nav a:hover { color: #4f46e5; }
+        .btn-logout { margin-left: 16px; padding: 6px 14px; background: #f1f5f9; color: #374151; font-size: .85rem; font-weight: 600; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; transition: background .2s; }
+        .btn-logout:hover { background: #e2e8f0; }
 
         /* 메인 */
         main { max-width: 1100px; margin: 0 auto; padding: 40px 24px; min-height: 70vh; }
@@ -107,7 +109,15 @@
         <a href="{{ route('home') }}" class="logo">Dong<span>Pou</span> Blog</a>
         <nav>
             <a href="{{ route('home') }}">홈</a>
-            <a href="{{ route('admin.posts.index') }}">관리자</a>
+            @if(session('admin_logged_in'))
+                <a href="{{ route('admin.posts.index') }}">관리자</a>
+                <form action="{{ route('admin.logout') }}" method="POST" style="display:inline">
+                    @csrf
+                    <button type="submit" class="btn-logout">로그아웃</button>
+                </form>
+            @else
+                <a href="{{ route('admin.login') }}">관리자</a>
+            @endif
         </nav>
     </div>
 </header>
