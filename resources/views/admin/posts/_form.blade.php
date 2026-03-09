@@ -120,7 +120,7 @@
     const initialValue   = hiddenTextarea.value;
 
     const CSRF_TOKEN   = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    const UPLOAD_URL   = '{{ route("admin.upload.image") }}';
+    const UPLOAD_URL   = '{{ route("admin.upload.image") }}'; {{-- admin. prefix + upload.image = admin.upload.image --}}
     const editorWrap   = document.querySelector('.editor-wrap');
 
     // ── 이미지 업로드 공통 함수 ──

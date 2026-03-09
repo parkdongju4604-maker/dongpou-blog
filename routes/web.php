@@ -46,7 +46,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
     Route::get('/settings', [SettingController::class, 'index'])->name('settings');
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
 
-    // 이미지 업로드
-    Route::post('/upload/image', [ImageUploadController::class, 'store'])->name('admin.upload.image');
-    Route::delete('/upload/image', [ImageUploadController::class, 'destroy'])->name('admin.upload.image.destroy');
+    // 이미지 업로드 (그룹 prefix 'admin.' 이 자동 붙으므로 여기선 upload.image 만)
+    Route::post('/upload/image', [ImageUploadController::class, 'store'])->name('upload.image');
+    Route::delete('/upload/image', [ImageUploadController::class, 'destroy'])->name('upload.image.destroy');
 });
