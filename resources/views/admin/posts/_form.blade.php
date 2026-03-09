@@ -8,19 +8,96 @@
 
 {{-- Toast UI Editor CSS --}}
 <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css">
+
 <style>
-    /* 에디터 컨테이너 */
-    .editor-wrap { border: 1.5px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
-    .editor-wrap:focus-within { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
-    .toastui-editor-defaultUI { border: none !important; }
-    .toastui-editor-toolbar { background: #f8fafc !important; border-bottom: 1px solid #e2e8f0 !important; }
-    .toastui-editor-mode-switch { background: #f8fafc !important; border-top: 1px solid #e2e8f0 !important; }
-    .toastui-editor-defaultUI .ProseMirror { font-size: 1rem !important; line-height: 1.8 !important; font-family: 'Noto Sans KR', -apple-system, sans-serif !important; }
-    .toastui-editor-contents p { margin-bottom: .8em; }
-    /* 이미지 드래그 오버 효과 */
-    .editor-wrap.drag-over { border-color: #6366f1; background: rgba(99,102,241,.03); }
+/* ── 에디터 래퍼 ── */
+.editor-wrap {
+    border: 1.5px solid #e2e8f0; border-radius: 8px; overflow: hidden;
+    position: relative; transition: border-color .15s;
+}
+.editor-wrap:focus-within { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+.toastui-editor-defaultUI { border: none !important; }
+.toastui-editor-toolbar { background: #f8fafc !important; border-bottom: 1px solid #e2e8f0 !important; }
+.toastui-editor-mode-switch { background: #f8fafc !important; border-top: 1px solid #e2e8f0 !important; }
+.toastui-editor-defaultUI .ProseMirror {
+    font-size: 1rem !important; line-height: 1.8 !important;
+    font-family: 'Noto Sans KR', -apple-system, sans-serif !important;
+}
+.toastui-editor-contents p { margin-bottom: .8em; }
+
+/* ── 높이 조절 핸들 ── */
+.editor-resize-handle {
+    height: 10px; background: #f1f5f9; cursor: ns-resize;
+    display: flex; align-items: center; justify-content: center;
+    border-top: 1px solid #e2e8f0; user-select: none;
+    transition: background .15s;
+}
+.editor-resize-handle:hover { background: #e2e8f0; }
+.editor-resize-handle::before {
+    content: ''; display: block; width: 36px; height: 3px;
+    background: #cbd5e1; border-radius: 2px;
+}
+
+/* ── 이미지 삽입 다이얼로그 ── */
+.img-dialog-overlay {
+    display: none; position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,.45); align-items: center; justify-content: center;
+}
+.img-dialog-overlay.open { display: flex; }
+.img-dialog {
+    background: #fff; border-radius: 14px; padding: 28px;
+    width: min(460px, 92vw); box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    animation: dialogIn .18s ease;
+}
+@keyframes dialogIn { from { transform: scale(.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.img-dialog h3 { font-size: 1rem; font-weight: 700; margin-bottom: 20px; color: #0f172a; }
+.img-dialog-preview {
+    width: 100%; max-height: 180px; object-fit: contain;
+    border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0;
+    margin-bottom: 18px; display: none;
+}
+.img-dialog label { display: block; font-size: .8rem; font-weight: 600; color: #374151; margin-bottom: 5px; }
+.img-dialog input[type=text],
+.img-dialog input[type=number] {
+    width: 100%; padding: 9px 12px; border: 1.5px solid #e2e8f0;
+    border-radius: 8px; font-size: .9rem; margin-bottom: 14px;
+    outline: none; transition: border .15s;
+}
+.img-dialog input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+.img-dialog .hint { font-size: .75rem; color: #94a3b8; margin-top: -10px; margin-bottom: 14px; }
+.img-dialog-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+.img-dialog-actions button {
+    padding: 9px 20px; border-radius: 8px; font-size: .875rem;
+    font-weight: 600; cursor: pointer; border: none;
+}
+.btn-insert { background: #4f46e5; color: #fff; }
+.btn-insert:hover { background: #4338ca; }
+.btn-cancel-dialog { background: #f1f5f9; color: #475569; }
+.btn-cancel-dialog:hover { background: #e2e8f0; }
 </style>
 
+{{-- 이미지 삽입 다이얼로그 --}}
+<div class="img-dialog-overlay" id="img-dialog-overlay">
+    <div class="img-dialog">
+        <h3>🖼 이미지 설정</h3>
+        <img id="img-dialog-preview" class="img-dialog-preview" alt="미리보기">
+        <div>
+            <label for="img-alt-input">대체 텍스트 (Alt)</label>
+            <input type="text" id="img-alt-input" placeholder="이미지 내용을 설명하세요 (SEO, 접근성)">
+        </div>
+        <div>
+            <label for="img-width-input">너비 (px)</label>
+            <input type="number" id="img-width-input" placeholder="비워두면 원본 크기" min="50" max="2000" step="10">
+            <p class="hint">예: 700 입력 시 → 너비 700px로 표시</p>
+        </div>
+        <div class="img-dialog-actions">
+            <button class="btn-cancel-dialog" id="img-dialog-cancel">취소</button>
+            <button class="btn-insert" id="img-dialog-confirm">삽입</button>
+        </div>
+    </div>
+</div>
+
+{{-- 폼 레이아웃 --}}
 <div style="display:grid;grid-template-columns:1fr 240px;gap:20px;align-items:start">
     <div>
         {{-- 제목 --}}
@@ -32,19 +109,21 @@
                    style="font-size:1.05rem;font-weight:600">
         </div>
 
-        {{-- 에디터 영역 --}}
+        {{-- 에디터 --}}
         <div class="form-group">
             <label class="form-label" style="display:flex;align-items:center;justify-content:space-between">
                 <span>내용 *</span>
                 <span style="font-size:.72rem;color:#94a3b8;font-weight:400">
-                    비주얼 / 마크다운 전환 가능 &nbsp;·&nbsp; 이미지 드래그&드롭 지원
+                    이미지 드래그&드롭 · 클립보드 붙여넣기 지원
                 </span>
             </label>
-            {{-- 실제 전송될 hidden input --}}
             <textarea name="content" id="content-hidden" style="display:none">{{ old('content', $post->content ?? '') }}</textarea>
-            {{-- 에디터 마운트 포인트 --}}
-            <div class="editor-wrap">
+            <div class="editor-wrap" id="editor-wrap">
                 <div id="toast-editor"></div>
+                <div class="editor-resize-handle" id="editor-resize-handle" title="드래그해서 높이 조절"></div>
+            </div>
+            <div style="font-size:.73rem;color:#94a3b8;margin-top:5px;text-align:right">
+                아래 경계선을 드래그해서 에디터 높이를 조절할 수 있습니다
             </div>
         </div>
 
@@ -62,8 +141,6 @@
 
     {{-- 사이드 패널 --}}
     <div style="position:sticky;top:80px;display:flex;flex-direction:column;gap:12px">
-
-        {{-- 발행 설정 --}}
         <div class="card">
             <div class="card-header" style="padding:12px 16px"><h3 style="font-size:.875rem">발행 설정</h3></div>
             <div class="card-body" style="padding:14px 16px">
@@ -77,7 +154,6 @@
             </div>
         </div>
 
-        {{-- 카테고리 --}}
         <div class="card">
             <div class="card-header" style="padding:12px 16px"><h3 style="font-size:.875rem">카테고리</h3></div>
             <div class="card-body" style="padding:14px 16px">
@@ -96,12 +172,11 @@
             </div>
         </div>
 
-        {{-- 마크다운 치트시트 --}}
         <div class="card" style="background:#f8fafc">
             <div class="card-header" style="padding:10px 16px;border-bottom:1px solid #f1f5f9">
                 <h3 style="font-size:.78rem;color:#64748b">마크다운 단축키</h3>
             </div>
-            <div class="card-body" style="padding:12px 16px;font-size:.75rem;color:#64748b;line-height:2">
+            <div class="card-body" style="padding:12px 16px;font-size:.75rem;color:#64748b;line-height:2.1">
                 <div><kbd style="background:#e2e8f0;padding:1px 5px;border-radius:3px;font-size:.7rem">##</kbd> 소제목</div>
                 <div><kbd style="background:#e2e8f0;padding:1px 5px;border-radius:3px;font-size:.7rem">**굵게**</kbd> 굵은 글씨</div>
                 <div><kbd style="background:#e2e8f0;padding:1px 5px;border-radius:3px;font-size:.7rem">- 항목</kbd> 목록</div>
@@ -116,45 +191,89 @@
 <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
 <script>
 (function () {
-    const hiddenTextarea = document.getElementById('content-hidden');
-    const initialValue   = hiddenTextarea.value;
+    const CSRF_TOKEN    = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const UPLOAD_URL    = '{{ route("admin.upload.image") }}';
+    const hiddenTA      = document.getElementById('content-hidden');
+    const editorWrap    = document.getElementById('editor-wrap');
+    const DEFAULT_H     = parseInt(localStorage.getItem('editorHeight') || '560');
 
-    const CSRF_TOKEN   = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    const UPLOAD_URL   = '{{ route("admin.upload.image") }}'; {{-- admin. prefix + upload.image = admin.upload.image --}}
-    const editorWrap   = document.querySelector('.editor-wrap');
+    // ── 이미지 다이얼로그 상태 ──
+    const overlay   = document.getElementById('img-dialog-overlay');
+    const preview   = document.getElementById('img-dialog-preview');
+    const altInput  = document.getElementById('img-alt-input');
+    const widthInput= document.getElementById('img-width-input');
+    const confirmBtn= document.getElementById('img-dialog-confirm');
+    const cancelBtn = document.getElementById('img-dialog-cancel');
+    let   pendingCallback = null;
+    let   pendingUrl      = null;
 
-    // ── 이미지 업로드 공통 함수 ──
+    function openImgDialog(url, blobOrName) {
+        // 미리보기 표시
+        preview.src = url;
+        preview.style.display = 'block';
+        altInput.value  = '';
+        widthInput.value = '';
+        overlay.classList.add('open');
+        altInput.focus();
+    }
+
+    function closeImgDialog() {
+        overlay.classList.remove('open');
+        pendingCallback = null;
+        pendingUrl      = null;
+        preview.style.display = 'none';
+    }
+
+    confirmBtn.addEventListener('click', function () {
+        if (!pendingCallback || !pendingUrl) return;
+        const alt   = altInput.value.trim() || '이미지';
+        const width = parseInt(widthInput.value);
+
+        if (width > 0) {
+            // 너비 지정: 마크다운 직접 삽입
+            editor.insertText(`![${alt}](${pendingUrl} =${width}x)`);
+            hiddenTA.value = editor.getMarkdown();
+        } else {
+            // 너비 없음: 기본 콜백 사용
+            pendingCallback(pendingUrl, alt);
+        }
+        closeImgDialog();
+    });
+
+    cancelBtn.addEventListener('click', closeImgDialog);
+    overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) closeImgDialog();
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeImgDialog();
+        if (e.key === 'Enter' && overlay.classList.contains('open')) confirmBtn.click();
+    });
+
+    // ── 이미지 업로드 ──
     function uploadImage(blob, callback) {
         const formData = new FormData();
         formData.append('image', blob, blob.name || 'image.png');
         formData.append('_token', CSRF_TOKEN);
-
-        // 업로드 인디케이터
-        editorWrap.style.opacity = '.7';
+        editorWrap.style.opacity = '.75';
 
         fetch(UPLOAD_URL, { method: 'POST', body: formData })
-            .then(res => {
-                if (!res.ok) throw new Error('업로드 실패');
-                return res.json();
-            })
+            .then(res => { if (!res.ok) throw new Error('업로드 실패'); return res.json(); })
             .then(data => {
-                callback(data.url, blob.name || '이미지');
+                pendingUrl      = data.url;
+                pendingCallback = callback;
+                openImgDialog(data.url, blob.name || '');
             })
-            .catch(err => {
-                alert('이미지 업로드 실패: ' + err.message);
-                callback('', '');
-            })
-            .finally(() => {
-                editorWrap.style.opacity = '1';
-            });
+            .catch(err => alert('이미지 업로드 실패: ' + err.message))
+            .finally(() => { editorWrap.style.opacity = '1'; });
     }
 
+    // ── 에디터 초기화 ──
     const editor = new toastui.Editor({
         el: document.getElementById('toast-editor'),
-        height: '580px',
+        height: DEFAULT_H + 'px',
         initialEditType: 'wysiwyg',
         previewStyle: 'tab',
-        initialValue: initialValue,
+        initialValue: hiddenTA.value,
         language: 'ko-KR',
         toolbarItems: [
             ['heading', 'bold', 'italic', 'strike'],
@@ -165,48 +284,55 @@
         ],
         placeholder: '내용을 입력하세요...',
         hooks: {
-            // 에디터 이미지 버튼 클릭 시 파일 선택 → 업로드
-            addImageBlobHook: function(blob, callback) {
+            addImageBlobHook: function (blob, callback) {
                 uploadImage(blob, callback);
             }
         },
         events: {
-            change: function () {
-                hiddenTextarea.value = editor.getMarkdown();
-            }
+            change: function () { hiddenTA.value = editor.getMarkdown(); }
         }
     });
 
-    // ── 이미지 파일 드래그&드롭 (에디터 외부 영역 포함) ──
-    editorWrap.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        editorWrap.classList.add('drag-over');
-    });
-    editorWrap.addEventListener('dragleave', function() {
-        editorWrap.classList.remove('drag-over');
-    });
-    editorWrap.addEventListener('drop', function(e) {
-        editorWrap.classList.remove('drag-over');
-        // Toast UI Editor 자체 핸들러가 처리하므로 별도 처리 불필요
+    // ── 높이 조절 핸들 ──
+    const handle   = document.getElementById('editor-resize-handle');
+    let resizing   = false;
+    let startY     = 0;
+    let startH     = 0;
+
+    handle.addEventListener('mousedown', function (e) {
+        resizing = true;
+        startY   = e.clientY;
+        startH   = parseInt(editor.getHeight()) || DEFAULT_H;
+        document.body.style.userSelect = 'none';
+        document.body.style.cursor     = 'ns-resize';
     });
 
-    // ── 클립보드 이미지 붙여넣기 ──
-    // Toast UI Editor가 자체 지원함 (addImageBlobHook 호출)
+    document.addEventListener('mousemove', function (e) {
+        if (!resizing) return;
+        const newH = Math.max(280, Math.min(1600, startH + (e.clientY - startY)));
+        editor.setHeight(newH + 'px');
+    });
 
-    // ── 폼 제출 시 동기화 ──
+    document.addEventListener('mouseup', function () {
+        if (!resizing) return;
+        resizing = false;
+        document.body.style.userSelect = '';
+        document.body.style.cursor     = '';
+        // 높이 저장
+        localStorage.setItem('editorHeight', parseInt(editor.getHeight()));
+    });
+
+    // ── 폼 제출 동기화 ──
     const form = document.querySelector('form');
     if (form) {
         form.addEventListener('submit', function () {
-            hiddenTextarea.value = editor.getMarkdown();
+            hiddenTA.value = editor.getMarkdown();
         });
     }
 
     // ── Tab 키 → 에디터 포커스 ──
     document.getElementById('post-title').addEventListener('keydown', function (e) {
-        if (e.key === 'Tab') {
-            e.preventDefault();
-            editor.focus();
-        }
+        if (e.key === 'Tab') { e.preventDefault(); editor.focus(); }
     });
 })();
 </script>

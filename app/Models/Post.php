@@ -72,17 +72,43 @@ class Post extends Model
 
     /**
      * 마크다운 → HTML 렌더링 (GFM 지원)
+     * Toast UI Editor의 이미지 너비 문법 `![alt](url =NNNx)` 도 처리
      */
     public function getRenderedContentAttribute(): string
     {
-        $env = new Environment([
-            'html_input'         => 'escape',   // 원시 HTML 태그 이스케이프 (XSS 방지)
-            'allow_unsafe_links' => false,
-        ]);
+        $content = $this->content;
+        $replacements = [];
+
+        // 1) Toast UI 너비 문법 `![alt](url =NNNx)` → placeholder로 교체
+        $content = preg_replace_callback(
+            '/!\[([^\]]*)\]\(([^ \)\n]+) =(\d+)x\)/',
+            function ($m) use (&$replacements) {
+                $key = '__IMG_' . count($replacements) . '__';
+                $replacements[$key] = sprintf(
+                    '<img src="%s" alt="%s" style="max-width:%dpx;width:100%%;height:auto;'
+                    . 'border-radius:12px;margin:1.5rem auto;display:block">',
+                    htmlspecialchars($m[2], ENT_QUOTES, 'UTF-8'),
+                    htmlspecialchars($m[1], ENT_QUOTES, 'UTF-8'),
+                    (int) $m[3]
+                );
+                return $key;
+            },
+            $content
+        );
+
+        // 2) CommonMark 렌더링
+        $env = new Environment(['html_input' => 'escape', 'allow_unsafe_links' => false]);
         $env->addExtension(new CommonMarkCoreExtension());
         $env->addExtension(new GithubFlavoredMarkdownExtension());
+        $html = (new MarkdownConverter($env))->convert($content)->getContent();
 
-        return (new MarkdownConverter($env))->convert($this->content)->getContent();
+        // 3) placeholder → 실제 <img> 태그로 복원
+        foreach ($replacements as $key => $imgTag) {
+            $html = str_replace(htmlspecialchars($key), $imgTag, $html);
+            $html = str_replace($key, $imgTag, $html);
+        }
+
+        return $html;
     }
 
     /**
