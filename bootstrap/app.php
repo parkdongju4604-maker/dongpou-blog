@@ -14,6 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin.auth' => \App\Http\Middleware\AdminAuthMiddleware::class,
         ]);
+        // 페이지뷰 트래킹 (웹 전체)
+        $middleware->appendToGroup('web', \App\Http\Middleware\TrackPageView::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

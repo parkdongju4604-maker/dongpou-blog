@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\Admin\StatsController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\PostController;
@@ -41,6 +42,9 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+    // 사이트 통계
+    Route::get('/stats', [StatsController::class, 'index'])->name('stats.index');
 
     // 사이트 설정
     Route::get('/settings', [SettingController::class, 'index'])->name('settings');
