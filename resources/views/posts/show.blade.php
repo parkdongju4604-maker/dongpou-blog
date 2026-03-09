@@ -5,10 +5,10 @@
     $authorName   = Setting::get('author_name', Setting::get('blog_name', config('app.name')));
     $ogImgDefault = Setting::get('og_image_default', '');
 
-    // 메타 필드: 수동 설정 > 자동 생성 순으로 fallback
-    $seoTitle   = $post->meta_title       ?: $post->title;
-    $excerpt    = $post->meta_description ?: ($post->excerpt ?: Str::limit(strip_tags($post->content), 155));
-    $ogImage    = $post->og_image         ?: $ogImgDefault;
+    // 메타: 글 정보 기반 자동 생성 (전역 설정 fallback)
+    $seoTitle   = $post->title;
+    $excerpt    = $post->excerpt ?: Str::limit(strip_tags($post->content), 155);
+    $ogImage    = $post->thumbnail ?: $ogImgDefault;
     $postUrl      = route('posts.show', $post->slug);
     $blogName     = Setting::get('blog_name', config('app.name'));
     $baseUrl      = url('/');
@@ -79,12 +79,6 @@
 <meta property="article:published_time" content="{{ $post->published_at?->toIso8601String() }}">
 <meta property="article:modified_time"  content="{{ $post->updated_at->toIso8601String() }}">
 <meta property="article:section"        content="{{ $post->category }}">
-@if($post->meta_keywords)
-<meta name="keywords" content="{{ $post->meta_keywords }}">
-@endif
-@if($post->noindex)
-<meta name="robots" content="noindex, nofollow">
-@endif
 @endpush
 
 @section('content')

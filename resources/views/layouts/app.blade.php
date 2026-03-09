@@ -13,6 +13,8 @@
     $twitterHandle  = Setting::get('twitter_handle', '');
     $robotsIndex    = Setting::get('robots_index', 'index,follow');
     $authorName     = Setting::get('author_name', $blogName);
+    $metaKeywords   = Setting::get('meta_keywords', '');
+    $headCode       = Setting::get('head_code', '');
     $canonicalUrl   = url()->current();
     $activeTheme    = CssTheme::getActive();
     $activeThemeCss = $activeTheme ? $activeTheme->css : '';
@@ -27,6 +29,9 @@
     <meta name="description" content="@yield('description', $blogDesc)">
     <meta name="author" content="@yield('author', $authorName)">
     <meta name="robots" content="{{ $robotsIndex }}">
+    @if($metaKeywords)
+    <meta name="keywords" content="{{ $metaKeywords }}">
+    @endif
     <link rel="canonical" href="@yield('canonical', $canonicalUrl)">
     @if($googleVerify)
     <meta name="google-site-verification" content="{{ $googleVerify }}">
@@ -69,6 +74,9 @@
     <script type="application/ld+json">{!! json_encode($websiteSchema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!}</script>
     @stack('jsonld')
     @stack('head')
+    @if($headCode)
+    {!! $headCode !!}
+    @endif
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

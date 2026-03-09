@@ -113,24 +113,18 @@ class PostController extends Controller
 
         [$published, $publishedAt] = $this->resolvePublishState($request);
 
-        // 수동 OG 이미지 없으면 본문 첫 이미지 자동 세팅
-        $ogImage   = $request->og_image ?: Post::extractFirstImage($request->content);
-        $thumbnail = $ogImage;
+        // 본문 첫 이미지를 썸네일로 자동 추출
+        $thumbnail = Post::extractFirstImage($request->content);
 
         Post::create([
-            'title'            => $request->title,
-            'slug'             => Post::makeSlug($request->title),
-            'content'          => $request->content,
-            'excerpt'          => $request->excerpt,
-            'category'         => $request->category,
-            'published'        => $published,
-            'published_at'     => $publishedAt,
-            'thumbnail'        => $thumbnail,
-            'meta_title'       => $request->meta_title       ?: null,
-            'meta_description' => $request->meta_description ?: null,
-            'meta_keywords'    => $request->meta_keywords    ?: null,
-            'og_image'         => $ogImage,
-            'noindex'          => $request->boolean('noindex'),
+            'title'        => $request->title,
+            'slug'         => Post::makeSlug($request->title),
+            'content'      => $request->content,
+            'excerpt'      => $request->excerpt,
+            'category'     => $request->category,
+            'published'    => $published,
+            'published_at' => $publishedAt,
+            'thumbnail'    => $thumbnail,
         ]);
 
         return redirect()->route('admin.posts.index')->with('success', '글이 등록되었습니다.');
@@ -158,23 +152,17 @@ class PostController extends Controller
 
         [$published, $publishedAt] = $this->resolvePublishState($request);
 
-        // 수동 OG 이미지 없으면 본문 첫 이미지 자동 세팅
-        $ogImage   = $request->og_image ?: Post::extractFirstImage($request->content);
-        $thumbnail = $ogImage;
+        // 본문 첫 이미지를 썸네일로 자동 추출
+        $thumbnail = Post::extractFirstImage($request->content);
 
         $post->update([
-            'title'            => $request->title,
-            'content'          => $request->content,
-            'excerpt'          => $request->excerpt,
-            'category'         => $request->category,
-            'published'        => $published,
-            'published_at'     => $publishedAt,
-            'thumbnail'        => $thumbnail,
-            'meta_title'       => $request->meta_title       ?: null,
-            'meta_description' => $request->meta_description ?: null,
-            'meta_keywords'    => $request->meta_keywords    ?: null,
-            'og_image'         => $ogImage,
-            'noindex'          => $request->boolean('noindex'),
+            'title'        => $request->title,
+            'content'      => $request->content,
+            'excerpt'      => $request->excerpt,
+            'category'     => $request->category,
+            'published'    => $published,
+            'published_at' => $publishedAt,
+            'thumbnail'    => $thumbnail,
         ]);
 
         return redirect()->route('admin.posts.index')->with('success', '수정되었습니다.');

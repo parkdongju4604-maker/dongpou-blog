@@ -2,7 +2,12 @@
 <div class="form-group">
     <label class="form-label">{{ $setting->label }}</label>
     @if($setting->type === 'textarea')
-        <textarea name="settings[{{ $setting->key }}][value]" class="form-control" style="min-height:80px">{{ old('settings.'.$setting->key.'.value', $setting->value) }}</textarea>
+        <textarea name="settings[{{ $setting->key }}][value]" class="form-control"
+                  style="min-height:{{ $setting->key === 'head_code' ? '140px' : '80px' }};{{ $setting->key === 'head_code' ? 'font-family:monospace;font-size:.82rem;' : '' }}"
+                  placeholder="{{ $setting->key === 'head_code' ? '예: <meta name="theme-color" content="#4f46e5">' : '' }}">{{ old('settings.'.$setting->key.'.value', $setting->value) }}</textarea>
+        @if($setting->key === 'head_code')
+        <p style="font-size:.75rem;color:#94a3b8;margin-top:4px">모든 페이지 &lt;head&gt;에 삽입됩니다. &lt;meta&gt;, &lt;link&gt; 등 HTML 태그를 직접 입력하세요.</p>
+        @endif
     @elseif($setting->type === 'number')
         <input type="number" name="settings[{{ $setting->key }}][value]" class="form-control"
                value="{{ old('settings.'.$setting->key.'.value', $setting->value) }}" min="1" max="50" style="max-width:120px">
