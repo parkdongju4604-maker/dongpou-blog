@@ -32,11 +32,25 @@ class PostController extends Controller
     {
         $post    = Post::published()->where('slug', $slug)->firstOrFail();
         $post->increment('view_count');
+
         $related = Post::published()
             ->where('category', $post->category)
             ->where('id', '!=', $post->id)
             ->limit(3)->get();
-        return view('posts.show', compact('post', 'related'));
+
+        // 이전 글 (더 오래된 글)
+        $prevPost = Post::published()
+            ->where('published_at', '<', $post->published_at)
+            ->reorder()->orderByDesc('published_at')
+            ->first(['id', 'title', 'slug', 'category']);
+
+        // 다음 글 (더 최신 글)
+        $nextPost = Post::published()
+            ->where('published_at', '>', $post->published_at)
+            ->reorder()->orderBy('published_at')
+            ->first(['id', 'title', 'slug', 'category']);
+
+        return view('posts.show', compact('post', 'related', 'prevPost', 'nextPost'));
     }
 
     // ── 관리자 라우트 ────────────────────────────

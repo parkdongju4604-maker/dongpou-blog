@@ -84,6 +84,120 @@
 <link rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
 <style>
+/* ── 수정일 배지 ── */
+.updated-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: .75rem; font-weight: 600; color: #d97706;
+    background: #fffbeb; border: 1px solid #fde68a;
+    padding: 2px 9px; border-radius: 20px;
+    white-space: nowrap;
+}
+
+/* ── 모바일 목차 (960px 이하) ── */
+.toc-mobile {
+    display: none;
+    margin: 0 0 32px;
+    border: 1.5px solid var(--border, #e5e7eb);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f9f9fc;
+}
+.toc-mobile-toggle {
+    display: flex; align-items: center; gap: 8px;
+    padding: 13px 16px;
+    cursor: pointer;
+    font-size: .875rem; font-weight: 700; color: #374151;
+    list-style: none;
+    user-select: none;
+    transition: background .12s;
+}
+.toc-mobile-toggle::-webkit-details-marker { display: none; }
+.toc-mobile-toggle:hover { background: #f0f0f8; }
+.toc-mobile-icon { color: var(--primary, #4f46e5); flex-shrink: 0; }
+.toc-mobile-count {
+    margin-left: 4px; font-size: .7rem; font-weight: 600;
+    color: #9ca3af; background: #e5e7eb;
+    padding: 1px 7px; border-radius: 20px;
+}
+.toc-mobile-arrow { margin-left: auto; color: #9ca3af; transition: transform .2s; flex-shrink: 0; }
+details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
+.toc-mobile-nav { border-top: 1px solid var(--border, #e5e7eb); padding: 12px 0; }
+.toc-mobile-nav ul { list-style: none; margin: 0; padding: 0; }
+.toc-mobile-nav li { margin: 0; }
+.toc-mobile-nav li a {
+    display: block; padding: 6px 18px;
+    font-size: .84rem; color: #4b5563;
+    text-decoration: none; transition: color .12s, background .12s;
+    border-left: 3px solid transparent; margin: 1px 10px; border-radius: 6px;
+}
+.toc-mobile-nav li a:hover,
+.toc-mobile-nav li a.active { color: var(--primary, #4f46e5); background: var(--primary-light, #eef2ff); border-left-color: var(--primary, #4f46e5); font-weight: 600; }
+.toc-mobile-nav li.toc-h3 a { padding-left: 30px; font-size: .8rem; color: #6b7280; }
+
+@media (max-width: 960px) {
+    .toc-mobile { display: block; }
+}
+
+/* ── 이전/다음 글 네비게이션 ── */
+.post-nav {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border, #e5e7eb);
+}
+.post-nav-inner {
+    display: grid;
+    grid-template-columns: 1fr 44px 1fr;
+    gap: 12px;
+    align-items: stretch;
+}
+.post-nav-item {
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 16px 18px;
+    border: 1.5px solid var(--border, #e5e7eb);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: border-color .15s, background .15s, transform .1s;
+    background: #fff;
+    min-width: 0;
+}
+.post-nav-item:hover { border-color: var(--primary, #4f46e5); background: var(--primary-light, #eef2ff); transform: translateY(-1px); }
+.post-nav-empty { pointer-events: none; opacity: .4; background: #f9fafb; }
+.post-nav-prev { text-align: left; }
+.post-nav-next { text-align: right; }
+.post-nav-label {
+    display: flex; align-items: center; gap: 4px;
+    font-size: .72rem; font-weight: 700; color: var(--primary, #4f46e5);
+    text-transform: uppercase; letter-spacing: .06em;
+}
+.post-nav-next .post-nav-label { justify-content: flex-end; }
+.post-nav-title {
+    font-size: .875rem; font-weight: 600; color: #1e293b;
+    line-height: 1.4;
+    overflow: hidden; display: -webkit-box;
+    -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.post-nav-cat {
+    font-size: .72rem; color: #9ca3af; font-weight: 500;
+}
+.post-nav-home {
+    display: flex; align-items: center; justify-content: center;
+    border: 1.5px solid var(--border, #e5e7eb);
+    border-radius: 12px;
+    color: #6b7280; text-decoration: none;
+    transition: border-color .15s, color .15s, background .15s;
+    background: #fff;
+}
+.post-nav-home:hover { border-color: var(--primary, #4f46e5); color: var(--primary, #4f46e5); background: var(--primary-light, #eef2ff); }
+
+@media (max-width: 540px) {
+    .post-nav-inner {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto;
+    }
+    .post-nav-home { display: none; }
+}
+</style>
+<style>
 /* hljs 자체 배경·패딩 제거 → 기존 pre 스타일 유지 */
 .post-content pre code.hljs { background: transparent !important; padding: 0 !important; }
 
@@ -153,16 +267,50 @@
                     {{ $post->category }}
                 </a>
                 <h1 class="post-title" itemprop="headline">{{ $post->title }}</h1>
+                @php
+                    $isUpdated = $post->updated_at->diffInDays($post->published_at ?? $post->created_at) >= 1;
+                @endphp
                 <div class="post-meta">
                     <time datetime="{{ $post->published_at?->toIso8601String() }}">
                         {{ $post->published_at?->format('Y년 m월 d일') }}
                     </time>
+                    @if($isUpdated)
+                        <span class="post-meta-sep">·</span>
+                        <span class="updated-badge" title="최종 수정: {{ $post->updated_at->format('Y.m.d') }}">
+                            🔄 {{ $post->updated_at->format('Y.m.d') }} 업데이트
+                        </span>
+                    @endif
                     <span class="post-meta-sep">·</span>
                     <span class="post-meta-badge">읽기 {{ $post->reading_time }}분</span>
                     <span class="post-meta-sep">·</span>
                     <span class="post-meta-badge">👁 {{ number_format($post->view_count) }}</span>
                 </div>
             </header>
+
+            {{-- 모바일 목차 (960px 이하에서만 표시) --}}
+            @if(count($tocItems) >= 2)
+            <details class="toc-mobile" id="toc-mobile">
+                <summary class="toc-mobile-toggle">
+                    <span class="toc-mobile-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+                    </span>
+                    <span>목차</span>
+                    <span class="toc-mobile-count">{{ count($tocItems) }}개</span>
+                    <svg class="toc-mobile-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </summary>
+                <nav class="toc-mobile-nav" aria-label="목차">
+                    <ul>
+                        @foreach($tocItems as $item)
+                        <li class="{{ $item['level'] === 3 ? 'toc-h3' : '' }}">
+                            <a href="#{{ $item['id'] }}" onclick="document.getElementById('toc-mobile').removeAttribute('open')">
+                                {{ $item['text'] }}
+                            </a>
+                        </li>
+                        @endforeach
+                    </ul>
+                </nav>
+            </details>
+            @endif
 
             {{-- 본문 --}}
             <div class="post-content" id="post-content" itemprop="articleBody">
@@ -190,15 +338,48 @@
         </aside>
         @endif
 
+        {{-- 이전 / 다음 글 네비게이션 --}}
+        <nav class="post-nav" aria-label="이전/다음 글">
+            <div class="post-nav-inner">
+                @if($prevPost)
+                <a href="{{ route('posts.show', $prevPost->slug) }}" class="post-nav-item post-nav-prev">
+                    <span class="post-nav-label">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                        이전 글
+                    </span>
+                    <span class="post-nav-title">{{ $prevPost->title }}</span>
+                    <span class="post-nav-cat">{{ $prevPost->category }}</span>
+                </a>
+                @else
+                <div class="post-nav-item post-nav-prev post-nav-empty">
+                    <span class="post-nav-label">첫 번째 글입니다</span>
+                </div>
+                @endif
+
+                <a href="{{ route('home') }}" class="post-nav-home" title="목록으로">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                </a>
+
+                @if($nextPost)
+                <a href="{{ route('posts.show', $nextPost->slug) }}" class="post-nav-item post-nav-next">
+                    <span class="post-nav-label">
+                        다음 글
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </span>
+                    <span class="post-nav-title">{{ $nextPost->title }}</span>
+                    <span class="post-nav-cat">{{ $nextPost->category }}</span>
+                </a>
+                @else
+                <div class="post-nav-item post-nav-next post-nav-empty">
+                    <span class="post-nav-label">최신 글입니다</span>
+                </div>
+                @endif
+            </div>
+        </nav>
+
         {{-- 하단 --}}
         <footer class="post-footer">
-            <a href="{{ route('home') }}" class="btn btn-secondary">
-                ← 목록으로
-            </a>
-            <time datetime="{{ $post->published_at?->toIso8601String() }}"
-                  style="font-size:.78rem;color:#9ca3af">
-                {{ $post->published_at?->format('Y.m.d') }}
-            </time>
+            <a href="{{ route('home') }}" class="btn btn-secondary">← 목록으로</a>
         </footer>
     </div>
 
@@ -281,9 +462,10 @@
 </script>
 
 <script>
-// 목차 활성화 (스크롤 위치 기반)
+// 목차 활성화 (데스크탑 사이드바 + 모바일 TOC 공통)
 (function(){
-    const tocLinks = document.querySelectorAll('.toc-list a');
+    // 데스크탑 + 모바일 TOC 링크 모두 선택
+    const tocLinks = document.querySelectorAll('.toc-list a, .toc-mobile-nav a');
     if (!tocLinks.length) return;
 
     const headings = Array.from(document.querySelectorAll('.post-content h2, .post-content h3'));
@@ -293,8 +475,9 @@
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 tocLinks.forEach(a => a.classList.remove('active'));
-                const active = document.querySelector('.toc-list a[href="#' + entry.target.id + '"]');
-                if (active) active.classList.add('active');
+                const id = entry.target.id;
+                document.querySelectorAll('.toc-list a[href="#' + id + '"], .toc-mobile-nav a[href="#' + id + '"]')
+                    .forEach(a => a.classList.add('active'));
             }
         });
     }, { rootMargin: '-20% 0px -70% 0px' });
