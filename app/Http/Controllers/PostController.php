@@ -83,13 +83,18 @@ class PostController extends Controller
         [$published, $publishedAt] = $this->resolvePublishState($request);
 
         Post::create([
-            'title'        => $request->title,
-            'slug'         => Post::makeSlug($request->title),
-            'content'      => $request->content,
-            'excerpt'      => $request->excerpt,
-            'category'     => $request->category,
-            'published'    => $published,
-            'published_at' => $publishedAt,
+            'title'            => $request->title,
+            'slug'             => Post::makeSlug($request->title),
+            'content'          => $request->content,
+            'excerpt'          => $request->excerpt,
+            'category'         => $request->category,
+            'published'        => $published,
+            'published_at'     => $publishedAt,
+            'meta_title'       => $request->meta_title       ?: null,
+            'meta_description' => $request->meta_description ?: null,
+            'meta_keywords'    => $request->meta_keywords    ?: null,
+            'og_image'         => $request->og_image         ?: null,
+            'noindex'          => $request->boolean('noindex'),
         ]);
 
         return redirect()->route('admin.posts.index')->with('success', '글이 등록되었습니다.');
@@ -118,12 +123,17 @@ class PostController extends Controller
         [$published, $publishedAt] = $this->resolvePublishState($request);
 
         $post->update([
-            'title'        => $request->title,
-            'content'      => $request->content,
-            'excerpt'      => $request->excerpt,
-            'category'     => $request->category,
-            'published'    => $published,
-            'published_at' => $publishedAt,
+            'title'            => $request->title,
+            'content'          => $request->content,
+            'excerpt'          => $request->excerpt,
+            'category'         => $request->category,
+            'published'        => $published,
+            'published_at'     => $publishedAt,
+            'meta_title'       => $request->meta_title       ?: null,
+            'meta_description' => $request->meta_description ?: null,
+            'meta_keywords'    => $request->meta_keywords    ?: null,
+            'og_image'         => $request->og_image         ?: null,
+            'noindex'          => $request->boolean('noindex'),
         ]);
 
         return redirect()->route('admin.posts.index')->with('success', '수정되었습니다.');

@@ -4,7 +4,11 @@
 
     $authorName   = Setting::get('author_name', Setting::get('blog_name', config('app.name')));
     $ogImgDefault = Setting::get('og_image_default', '');
-    $excerpt      = $post->excerpt ?: Str::limit(strip_tags($post->content), 155);
+
+    // 메타 필드: 수동 설정 > 자동 생성 순으로 fallback
+    $seoTitle   = $post->meta_title       ?: $post->title;
+    $excerpt    = $post->meta_description ?: ($post->excerpt ?: Str::limit(strip_tags($post->content), 155));
+    $ogImage    = $post->og_image         ?: $ogImgDefault;
     $postUrl      = route('posts.show', $post->slug);
     $blogName     = Setting::get('blog_name', config('app.name'));
     $baseUrl      = url('/');
@@ -12,7 +16,7 @@
     $articleSchema = [
         '@context'         => 'https://schema.org',
         '@type'            => 'Article',
-        'headline'         => $post->title,
+        'headline'         => $seoTitle,
         'description'      => $excerpt,
         'datePublished'    => $post->published_at?->toIso8601String(),
         'dateModified'     => $post->updated_at->toIso8601String(),
@@ -20,7 +24,7 @@
         'publisher'        => ['@type' => 'Organization', 'name' => $blogName, 'url' => $baseUrl],
         'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $postUrl],
     ];
-    if ($ogImgDefault) { $articleSchema['image'] = $ogImgDefault; }
+    if ($ogImage) { $articleSchema['image'] = $ogImage; }
 
     $breadcrumbSchema = [
         '@context' => 'https://schema.org',
@@ -55,15 +59,15 @@
 
 @extends('layouts.app')
 
-@section('title', $post->title . ' — ' . $blogName)
+@section('title', $seoTitle . ' — ' . $blogName)
 @section('description', $excerpt)
 @section('author', $authorName)
 @section('canonical', $postUrl)
 @section('og:type', 'article')
-@section('og:title', $post->title)
+@section('og:title', $seoTitle)
 @section('og:description', $excerpt)
-@if($ogImgDefault)
-@section('og:image', $ogImgDefault)
+@if($ogImage)
+@section('og:image', $ogImage)
 @endif
 
 @push('jsonld')
@@ -75,6 +79,12 @@
 <meta property="article:published_time" content="{{ $post->published_at?->toIso8601String() }}">
 <meta property="article:modified_time"  content="{{ $post->updated_at->toIso8601String() }}">
 <meta property="article:section"        content="{{ $post->category }}">
+@if($post->meta_keywords)
+<meta name="keywords" content="{{ $post->meta_keywords }}">
+@endif
+@if($post->noindex)
+<meta name="robots" content="noindex, nofollow">
+@endif
 @endpush
 
 @section('content')
