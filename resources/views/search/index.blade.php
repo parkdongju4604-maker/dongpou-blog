@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', $q ? ""{$q}" 검색 결과" : '검색')
+@section('title', $q ? "{$q} 검색 결과" : '검색')
 @section('description', $q ? "'{$q}' 검색 결과 {$total}건" : '블로그 내 검색')
 
 @push('styles')
