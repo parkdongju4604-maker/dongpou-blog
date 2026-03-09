@@ -1,10 +1,16 @@
+@php
+    use App\Models\Setting;
+    $heroTitle    = Setting::get('hero_title', '최신 글');
+    $heroSubtitle = Setting::get('hero_subtitle', '다양한 주제의 글을 만나보세요.');
+    $blogName     = Setting::get('blog_name', config('app.name'));
+@endphp
 @extends('layouts.app')
-@section('title', 'DongPou Blog')
+@section('title', $blogName)
 
 @section('content')
 <div class="hero">
-    <h1>DongPou Blog</h1>
-    <p>개발, 마케팅, 일상의 기록</p>
+    <h1>{{ $heroTitle }}</h1>
+    <p>{{ $heroSubtitle }}</p>
 </div>
 
 <div class="category-tabs">
@@ -21,7 +27,6 @@
     <div style="text-align:center;padding:80px 0;color:#999">
         <p style="font-size:3rem;margin-bottom:16px">📝</p>
         <p>아직 게시된 글이 없습니다.</p>
-        <a href="{{ route('admin.posts.create') }}" class="btn btn-primary" style="margin-top:20px">첫 글 작성하기</a>
     </div>
 @else
     <div class="grid">

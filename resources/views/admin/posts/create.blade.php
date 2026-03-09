@@ -1,20 +1,14 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 @section('title', '새 글 작성')
+@section('page-title', '새 글 작성')
 
 @section('content')
-<div class="admin-wrap">
-    <div class="page-header">
-        <h2>새 글 작성</h2>
-        <a href="{{ route('admin.posts.index') }}" class="btn btn-secondary">← 목록</a>
+<form method="POST" action="{{ route('admin.posts.store') }}">
+    @csrf
+    @include('admin.posts._form')
+    <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end">
+        <a href="{{ route('admin.posts.index') }}" class="btn btn-secondary">취소</a>
+        <button type="submit" class="btn btn-primary" style="padding:10px 28px">글 등록</button>
     </div>
-
-    <form action="{{ route('admin.posts.store') }}" method="POST"
-          style="background:#fff;padding:32px;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.07)">
-        @csrf
-        @include('admin.posts._form')
-        <div style="display:flex;gap:12px;margin-top:8px">
-            <button type="submit" class="btn btn-primary">게시하기</button>
-        </div>
-    </form>
-</div>
+</form>
 @endsection

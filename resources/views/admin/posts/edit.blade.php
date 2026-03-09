@@ -1,21 +1,24 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 @section('title', '글 수정')
+@section('page-title', '글 수정')
 
 @section('content')
-<div class="admin-wrap">
-    <div class="page-header">
-        <h2>글 수정</h2>
-        <a href="{{ route('admin.posts.index') }}" class="btn btn-secondary">← 목록</a>
-    </div>
+<form method="POST" action="{{ route('admin.posts.update', $post) }}" id="update-form">
+    @csrf @method('PUT')
+    @include('admin.posts._form')
+</form>
 
-    <form action="{{ route('admin.posts.update', $post) }}" method="POST"
-          style="background:#fff;padding:32px;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.07)">
-        @csrf @method('PUT')
-        @include('admin.posts._form')
-        <div style="display:flex;gap:12px;margin-top:8px">
-            <button type="submit" class="btn btn-primary">저장하기</button>
-            <a href="{{ route('posts.show', $post->slug) }}" target="_blank" class="btn btn-secondary">미리보기</a>
-        </div>
+<div style="margin-top:20px;display:flex;gap:10px;justify-content:space-between;align-items:center">
+    {{-- 삭제 버튼 (별도 폼) --}}
+    <form action="{{ route('admin.posts.destroy', $post) }}" method="POST"
+          onsubmit="return confirm('정말 삭제하시겠습니까?')">
+        @csrf @method('DELETE')
+        <button type="submit" class="btn btn-danger">글 삭제</button>
     </form>
+
+    <div style="display:flex;gap:10px">
+        <a href="{{ route('admin.posts.index') }}" class="btn btn-secondary">취소</a>
+        <button type="submit" form="update-form" class="btn btn-primary" style="padding:10px 28px">수정 저장</button>
+    </div>
 </div>
 @endsection

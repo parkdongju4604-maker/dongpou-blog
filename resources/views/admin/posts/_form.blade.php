@@ -1,57 +1,64 @@
 @if($errors->any())
-<div class="alert" style="background:#fee2e2;color:#991b1b;margin-bottom:20px">
+<div class="alert alert-danger">
     <ul style="list-style:none">
         @foreach($errors->all() as $e) <li>{{ $e }}</li> @endforeach
     </ul>
 </div>
 @endif
 
-<div style="display:grid;grid-template-columns:1fr 200px;gap:20px">
+<div style="display:grid;grid-template-columns:1fr 240px;gap:20px;align-items:start">
     <div>
         <div class="form-group">
-            <label>제목 *</label>
+            <label class="form-label">제목 *</label>
             <input type="text" name="title" class="form-control"
                    value="{{ old('title', $post->title ?? '') }}"
                    placeholder="글 제목을 입력하세요" required>
         </div>
 
         <div class="form-group">
-            <label>내용 *</label>
-            <textarea name="content" class="form-control"
+            <label class="form-label">내용 *</label>
+            <textarea name="content" class="form-control" style="min-height:460px"
                       placeholder="글 내용을 입력하세요" required>{{ old('content', $post->content ?? '') }}</textarea>
         </div>
 
         <div class="form-group">
-            <label>요약 (목록에 표시됩니다)</label>
+            <label class="form-label">요약 <span class="hint">(목록에 표시됩니다, 선택)</span></label>
             <input type="text" name="excerpt" class="form-control"
                    value="{{ old('excerpt', $post->excerpt ?? '') }}"
-                   placeholder="간단한 글 요약 (선택)">
+                   placeholder="간단한 글 요약">
         </div>
     </div>
 
-    <div>
-        <div class="form-group">
-            <label>카테고리 *</label>
-            <input type="text" name="category" class="form-control"
-                   value="{{ old('category', $post->category ?? '일반') }}"
-                   list="categories" required>
-            <datalist id="categories">
-                <option value="일반">
-                <option value="개발">
-                <option value="마케팅">
-                <option value="SEO">
-                <option value="일상">
-                <option value="리뷰">
-            </datalist>
+    <div style="position:sticky;top:80px">
+        <div class="card" style="margin-bottom:12px">
+            <div class="card-header" style="padding:12px 16px"><h3 style="font-size:.875rem">발행 설정</h3></div>
+            <div class="card-body" style="padding:14px 16px">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.875rem;font-weight:500">
+                    <input type="checkbox" name="published" value="1"
+                           {{ old('published', $post->published ?? false) ? 'checked' : '' }}
+                           style="width:16px;height:16px;accent-color:#4f46e5">
+                    공개 게시
+                </label>
+                <p style="font-size:.75rem;color:#94a3b8;margin-top:6px">체크 해제 시 임시저장 상태</p>
+            </div>
         </div>
 
-        <div class="form-group" style="margin-top:16px">
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
-                <input type="checkbox" name="published" value="1"
-                       {{ old('published', $post->published ?? false) ? 'checked' : '' }}
-                       style="width:16px;height:16px">
-                공개 게시
-            </label>
+        <div class="card">
+            <div class="card-header" style="padding:12px 16px"><h3 style="font-size:.875rem">카테고리</h3></div>
+            <div class="card-body" style="padding:14px 16px">
+                <select name="category" class="form-control" required>
+                    @foreach($categories as $cat)
+                        <option value="{{ $cat->name }}"
+                            {{ old('category', $post->category ?? '') === $cat->name ? 'selected' : '' }}>
+                            {{ $cat->name }}
+                        </option>
+                    @endforeach
+                </select>
+                <a href="{{ route('admin.categories.index') }}"
+                   style="font-size:.75rem;color:#6366f1;display:block;margin-top:8px">
+                    카테고리 관리 →
+                </a>
+            </div>
         </div>
     </div>
 </div>
