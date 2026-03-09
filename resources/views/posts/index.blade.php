@@ -5,23 +5,22 @@
     $blogName     = Setting::get('blog_name',     config('app.name'));
     $blogDesc     = Setting::get('blog_description', Setting::get('blog_tagline',''));
     $canonicalUrl = isset($category) ? route('posts.category', $category) : route('home');
+    $blogSchema   = ['@context'=>'https://schema.org','@type'=>'Blog','name'=>$blogName,'description'=>$blogDesc,'url'=>url('/')];
 @endphp
 
 @extends('layouts.app')
-
-@section('title'){{ $blogName . (isset($category) ? ' - ' . $category : '') }}@endsection
-@section('description'){{ $blogDesc }}@endsection
-@section('canonical'){{ $canonicalUrl }}@endsection
+@section('title', $blogName . (isset($category) ? ' — ' . $category : ''))
+@section('description', $blogDesc)
+@section('canonical', $canonicalUrl)
 
 @push('jsonld')
-@php
-    $blogSchema = ['@context'=>'https://schema.org','@type'=>'Blog','name'=>$blogName,'description'=>$blogDesc,'url'=>url('/')];
-@endphp
 <script type="application/ld+json">{!! json_encode($blogSchema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!}</script>
 @endpush
 
 @section('content')
+
 <div class="hero">
+    <div class="hero-eyebrow">{{ $blogName }}</div>
     <h1>{{ isset($category) ? $category : $heroTitle }}</h1>
     <p>{{ isset($category) ? $category . ' 카테고리의 글 목록입니다.' : $heroSubtitle }}</p>
 </div>
@@ -42,15 +41,14 @@
 </nav>
 
 @if($posts->isEmpty())
-    <div style="text-align:center;padding:72px 0;color:#999">
-        <p style="font-size:2.5rem;margin-bottom:14px">📝</p>
-        <p>아직 게시된 글이 없습니다.</p>
+    <div style="text-align:center;padding:80px 0 100px;color:#9ca3af">
+        <div style="font-size:3.5rem;margin-bottom:16px;opacity:.4">✍️</div>
+        <p style="font-size:1rem;font-weight:500">아직 게시된 글이 없습니다.</p>
     </div>
 @else
     <div class="grid" role="list">
         @foreach($posts as $post)
-        <a href="{{ route('posts.show', $post->slug) }}" class="card" role="listitem"
-           aria-label="{{ $post->title }}">
+        <a href="{{ route('posts.show', $post->slug) }}" class="card" role="listitem">
             <div class="card-body">
                 <div class="card-category">{{ $post->category }}</div>
                 <h2 class="card-title">{{ $post->title }}</h2>
@@ -61,7 +59,8 @@
                     <time datetime="{{ $post->published_at?->toIso8601String() }}">
                         {{ $post->published_at?->format('Y.m.d') }}
                     </time>
-                    <span>읽기 {{ $post->reading_time }}분</span>
+                    <span class="card-meta-dot"></span>
+                    <span>{{ $post->reading_time }}분 읽기</span>
                 </div>
             </div>
         </a>
@@ -71,4 +70,5 @@
         {{ $posts->links() }}
     </div>
 @endif
+
 @endsection
