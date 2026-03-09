@@ -4,6 +4,7 @@
 
     $authorName   = Setting::get('author_name', Setting::get('blog_name', config('app.name')));
     $ogImgDefault = Setting::get('og_image_default', '');
+    $kakaoJsKey   = Setting::get('kakao_js_key', '');
 
     // 메타: 글 정보 기반 자동 생성 (전역 설정 fallback)
     $seoTitle   = $post->title;
@@ -196,6 +197,43 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
     }
     .post-nav-home { display: none; }
 }
+
+/* ── 소셜 공유 버튼 ── */
+.share-section {
+    margin-top: 40px; padding: 28px 24px;
+    background: #f9f9fc; border-radius: 16px;
+    border: 1.5px solid var(--border, #e5e7eb);
+    text-align: center;
+}
+.share-label {
+    font-size: .82rem; font-weight: 600; color: #6b7280;
+    margin-bottom: 16px; letter-spacing: .01em;
+}
+.share-buttons {
+    display: flex; justify-content: center;
+    gap: 10px; flex-wrap: wrap;
+}
+.share-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px; border-radius: 10px;
+    font-size: .83rem; font-weight: 700;
+    cursor: pointer; text-decoration: none;
+    border: none; transition: all .15s;
+    white-space: nowrap; line-height: 1;
+}
+.share-btn svg { flex-shrink: 0; }
+.share-kakao  { background: #FEE500; color: #191919; }
+.share-kakao:hover  { background: #f0d800; transform: translateY(-1px); }
+.share-twitter { background: #000; color: #fff; }
+.share-twitter:hover { background: #1a1a1a; transform: translateY(-1px); }
+.share-facebook { background: #1877F2; color: #fff; }
+.share-facebook:hover { background: #166fe5; transform: translateY(-1px); }
+.share-copy { background: #f1f5f9; color: #374151; border: 1.5px solid #e2e8f0; }
+.share-copy:hover { background: #e2e8f0; transform: translateY(-1px); }
+.share-copy.copied { background: #dcfce7; color: #15803d; border-color: #86efac; }
+@media (max-width: 480px) {
+    .share-btn { padding: 8px 14px; font-size: .8rem; }
+}
 </style>
 <style>
 /* hljs 자체 배경·패딩 제거 → 기존 pre 스타일 유지 */
@@ -377,6 +415,48 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
             </div>
         </nav>
 
+        {{-- 소셜 공유 버튼 --}}
+        <div class="share-section">
+            <p class="share-label">이 글이 도움이 됐다면 공유해보세요 🙌</p>
+            <div class="share-buttons">
+
+                @if($kakaoJsKey)
+                <button type="button" id="kakao-share-btn" class="share-btn share-kakao">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 3C6.477 3 2 6.477 2 10.8c0 2.7 1.6 5.08 4.02 6.54L5 21l4.67-2.43A11.8 11.8 0 0 0 12 18.6c5.523 0 10-3.478 10-7.8S17.523 3 12 3z"/>
+                    </svg>
+                    카카오톡
+                </button>
+                @endif
+
+                <a href="https://twitter.com/intent/tweet?url={{ urlencode($postUrl) }}&text={{ urlencode($post->title) }}"
+                   class="share-btn share-twitter" target="_blank" rel="noopener noreferrer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    X (Twitter)
+                </a>
+
+                <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode($postUrl) }}"
+                   class="share-btn share-facebook" target="_blank" rel="noopener noreferrer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                    Facebook
+                </a>
+
+                <button type="button" id="copy-link-btn" class="share-btn share-copy"
+                        data-url="{{ $postUrl }}">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                    </svg>
+                    <span id="copy-link-text">링크 복사</span>
+                </button>
+
+            </div>
+        </div>
+
         {{-- 하단 --}}
         <footer class="post-footer">
             <a href="{{ route('home') }}" class="btn btn-secondary">← 목록으로</a>
@@ -404,6 +484,56 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
 @endsection
 
 @push('scripts')
+{{-- 소셜 공유 버튼 JS --}}
+@if($kakaoJsKey)
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" crossorigin="anonymous"></script>
+<script>
+Kakao.init('{{ $kakaoJsKey }}');
+document.getElementById('kakao-share-btn')?.addEventListener('click', function () {
+    Kakao.Share.sendDefault({
+        objectType: 'feed',
+        content: {
+            title:       '{{ addslashes($post->title) }}',
+            description: '{{ addslashes($excerpt) }}',
+            @if($ogImage)
+            imageUrl: '{{ $ogImage }}',
+            @elseif($post->thumbnail)
+            imageUrl: '{{ url($post->thumbnail) }}',
+            @endif
+            link: { mobileWebUrl: '{{ $postUrl }}', webUrl: '{{ $postUrl }}' },
+        },
+    });
+});
+</script>
+@endif
+
+<script>
+// 링크 복사
+document.getElementById('copy-link-btn')?.addEventListener('click', function () {
+    const url  = this.dataset.url;
+    const btn  = this;
+    const text = document.getElementById('copy-link-text');
+
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject())
+        .catch(function () {
+            // fallback
+            const ta = document.createElement('textarea');
+            ta.value = url; ta.style.cssText = 'position:fixed;opacity:0';
+            document.body.appendChild(ta); ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        })
+        .finally(function () {
+            btn.classList.add('copied');
+            text.textContent = '✓ 복사됨';
+            setTimeout(function () {
+                btn.classList.remove('copied');
+                text.textContent = '링크 복사';
+            }, 2000);
+        });
+});
+</script>
+
 {{-- Highlight.js 로드 및 초기화 --}}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>
