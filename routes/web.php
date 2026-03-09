@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SitemapController;
@@ -44,4 +45,8 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
     // 사이트 설정
     Route::get('/settings', [SettingController::class, 'index'])->name('settings');
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
+
+    // 이미지 업로드
+    Route::post('/upload/image', [ImageUploadController::class, 'store'])->name('admin.upload.image');
+    Route::delete('/upload/image', [ImageUploadController::class, 'destroy'])->name('admin.upload.image.destroy');
 });

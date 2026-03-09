@@ -17,8 +17,8 @@
     .toastui-editor-mode-switch { background: #f8fafc !important; border-top: 1px solid #e2e8f0 !important; }
     .toastui-editor-defaultUI .ProseMirror { font-size: 1rem !important; line-height: 1.8 !important; font-family: 'Noto Sans KR', -apple-system, sans-serif !important; }
     .toastui-editor-contents p { margin-bottom: .8em; }
-    /* 이미지 업로드 버튼 숨김 (서버 설정 전) */
-    .toastui-editor-toolbar-icons.image { display: none; }
+    /* 이미지 드래그 오버 효과 */
+    .editor-wrap.drag-over { border-color: #6366f1; background: rgba(99,102,241,.03); }
 </style>
 
 <div style="display:grid;grid-template-columns:1fr 240px;gap:20px;align-items:start">
@@ -119,10 +119,40 @@
     const hiddenTextarea = document.getElementById('content-hidden');
     const initialValue   = hiddenTextarea.value;
 
+    const CSRF_TOKEN   = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const UPLOAD_URL   = '{{ route("admin.upload.image") }}';
+    const editorWrap   = document.querySelector('.editor-wrap');
+
+    // ── 이미지 업로드 공통 함수 ──
+    function uploadImage(blob, callback) {
+        const formData = new FormData();
+        formData.append('image', blob, blob.name || 'image.png');
+        formData.append('_token', CSRF_TOKEN);
+
+        // 업로드 인디케이터
+        editorWrap.style.opacity = '.7';
+
+        fetch(UPLOAD_URL, { method: 'POST', body: formData })
+            .then(res => {
+                if (!res.ok) throw new Error('업로드 실패');
+                return res.json();
+            })
+            .then(data => {
+                callback(data.url, blob.name || '이미지');
+            })
+            .catch(err => {
+                alert('이미지 업로드 실패: ' + err.message);
+                callback('', '');
+            })
+            .finally(() => {
+                editorWrap.style.opacity = '1';
+            });
+    }
+
     const editor = new toastui.Editor({
         el: document.getElementById('toast-editor'),
-        height: '560px',
-        initialEditType: 'wysiwyg',   // 기본값: 비주얼 에디터
+        height: '580px',
+        initialEditType: 'wysiwyg',
         previewStyle: 'tab',
         initialValue: initialValue,
         language: 'ko-KR',
@@ -130,19 +160,40 @@
             ['heading', 'bold', 'italic', 'strike'],
             ['hr', 'quote'],
             ['ul', 'ol', 'task'],
-            ['table', 'link'],
+            ['table', 'link', 'image'],
             ['code', 'codeblock'],
         ],
         placeholder: '내용을 입력하세요...',
+        hooks: {
+            // 에디터 이미지 버튼 클릭 시 파일 선택 → 업로드
+            addImageBlobHook: function(blob, callback) {
+                uploadImage(blob, callback);
+            }
+        },
         events: {
             change: function () {
-                // 실시간으로 hidden textarea 동기화
                 hiddenTextarea.value = editor.getMarkdown();
             }
         }
     });
 
-    // 폼 제출 시 마크다운으로 동기화
+    // ── 이미지 파일 드래그&드롭 (에디터 외부 영역 포함) ──
+    editorWrap.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        editorWrap.classList.add('drag-over');
+    });
+    editorWrap.addEventListener('dragleave', function() {
+        editorWrap.classList.remove('drag-over');
+    });
+    editorWrap.addEventListener('drop', function(e) {
+        editorWrap.classList.remove('drag-over');
+        // Toast UI Editor 자체 핸들러가 처리하므로 별도 처리 불필요
+    });
+
+    // ── 클립보드 이미지 붙여넣기 ──
+    // Toast UI Editor가 자체 지원함 (addImageBlobHook 호출)
+
+    // ── 폼 제출 시 동기화 ──
     const form = document.querySelector('form');
     if (form) {
         form.addEventListener('submit', function () {
@@ -150,7 +201,7 @@
         });
     }
 
-    // 제목으로 에디터 높이 포커스 이동
+    // ── Tab 키 → 에디터 포커스 ──
     document.getElementById('post-title').addEventListener('keydown', function (e) {
         if (e.key === 'Tab') {
             e.preventDefault();
