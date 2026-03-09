@@ -4,12 +4,17 @@ use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 
 // ── 공개 블로그 라우트
 Route::get('/', [PostController::class, 'index'])->name('home');
 Route::get('/category/{category}', [PostController::class, 'category'])->name('posts.category');
 Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show');
+
+// ── SEO
+Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->name('sitemap');
+Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 
 // ── 관리자 로그인/로그아웃 (인증 불필요)
 Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
