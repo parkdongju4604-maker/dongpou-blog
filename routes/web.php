@@ -8,6 +8,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\FeedController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,10 @@ Route::get('/search', [SearchController::class, 'index'])->name('search');
 // ── SEO
 Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
+
+// ── 피드
+Route::get('/feed/rss',  [FeedController::class, 'rss'])->name('feed.rss');
+Route::get('/feed/atom', [FeedController::class, 'atom'])->name('feed.atom');
 
 // ── 관리자 로그인/로그아웃 (인증 불필요)
 Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');

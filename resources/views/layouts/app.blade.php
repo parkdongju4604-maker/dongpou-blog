@@ -72,6 +72,10 @@
         $websiteSchema = ['@context'=>'https://schema.org','@type'=>'WebSite','name'=>$blogName,'description'=>$blogDesc,'url'=>url('/')];
     @endphp
     <script type="application/ld+json">{!! json_encode($websiteSchema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!}</script>
+    {{-- 피드 자동 감지 --}}
+    <link rel="alternate" type="application/rss+xml"  title="{{ $blogName }} RSS 피드"  href="{{ url('/feed/rss') }}">
+    <link rel="alternate" type="application/atom+xml" title="{{ $blogName }} Atom 피드" href="{{ url('/feed/atom') }}">
+
     @stack('jsonld')
     @stack('head')
     @if($headCode)
@@ -167,7 +171,19 @@
 </main>
 
 <footer>
-    <p><strong>{{ $blogName }}</strong> &nbsp;·&nbsp; {{ $footerText }} &nbsp;·&nbsp; &copy; {{ date('Y') }}</p>
+    <p>
+        <strong>{{ $blogName }}</strong> &nbsp;·&nbsp; {{ $footerText }} &nbsp;·&nbsp; &copy; {{ date('Y') }}
+        &nbsp;·&nbsp;
+        <a href="{{ route('feed.rss') }}"
+           style="color:inherit;opacity:.7;text-decoration:none;font-size:.8rem"
+           title="RSS 피드 구독">
+            <svg style="width:13px;height:13px;vertical-align:middle;margin-right:3px;fill:currentColor" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19.01 7.38 20 6.18 20C4.98 20 4 19.01 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg>RSS
+        </a>
+        &nbsp;·&nbsp;
+        <a href="{{ route('feed.atom') }}"
+           style="color:inherit;opacity:.7;text-decoration:none;font-size:.8rem"
+           title="Atom 피드 구독">Atom</a>
+    </p>
 </footer>
 
 <script>
