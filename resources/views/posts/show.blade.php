@@ -79,6 +79,49 @@
 <meta property="article:published_time" content="{{ $post->published_at?->toIso8601String() }}">
 <meta property="article:modified_time"  content="{{ $post->updated_at->toIso8601String() }}">
 <meta property="article:section"        content="{{ $post->category }}">
+
+{{-- Highlight.js (코드 블록 문법 하이라이팅) --}}
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<style>
+/* hljs 자체 배경·패딩 제거 → 기존 pre 스타일 유지 */
+.post-content pre code.hljs { background: transparent !important; padding: 0 !important; }
+
+/* 언어 배지 + 복사 버튼 공통 컨테이너 */
+.post-content pre { position: relative; }
+
+.code-lang-badge,
+.code-copy-btn {
+    position: absolute;
+    top: 10px; right: 14px;
+    font-size: .68rem;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    letter-spacing: .06em;
+    border-radius: 5px;
+    padding: 2px 9px;
+    pointer-events: none;
+    transition: opacity .15s;
+}
+.code-lang-badge {
+    color: #6b7280;
+    text-transform: uppercase;
+    user-select: none;
+    opacity: 1;
+}
+.code-copy-btn {
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.13);
+    color: #9ca3af;
+    cursor: pointer;
+    pointer-events: auto;
+    display: none;
+}
+/* 호버 시 배지 숨기고 복사 버튼 표시 */
+.post-content pre:hover .code-lang-badge { display: none; }
+.post-content pre:hover .code-copy-btn   { display: block; }
+.code-copy-btn:hover   { background: rgba(255,255,255,.16); color: #e2e8f0; }
+.code-copy-btn.copied  { color: #34d399 !important; border-color: #34d399 !important; }
+</style>
 @endpush
 
 @section('content')
@@ -180,6 +223,63 @@
 @endsection
 
 @push('scripts')
+{{-- Highlight.js 로드 및 초기화 --}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(function () {
+    document.querySelectorAll('.post-content pre code').forEach(function (block) {
+        // 1. 문법 하이라이팅
+        hljs.highlightElement(block);
+
+        const pre  = block.parentElement;
+        const lang = (block.className.match(/language-(\w+)/) || [])[1] || '';
+
+        // 2. 언어 배지
+        if (lang) {
+            const badge = document.createElement('span');
+            badge.className   = 'code-lang-badge';
+            badge.textContent = lang;
+            pre.appendChild(badge);
+        }
+
+        // 3. 복사 버튼
+        const btn = document.createElement('button');
+        btn.className   = 'code-copy-btn';
+        btn.textContent = '복사';
+        btn.addEventListener('click', function () {
+            const text = block.innerText;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(function () {
+                    btn.textContent = '✓ 복사됨';
+                    btn.classList.add('copied');
+                    setTimeout(function () {
+                        btn.textContent = '복사';
+                        btn.classList.remove('copied');
+                    }, 1800);
+                });
+            } else {
+                // fallback (older browsers)
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity  = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                btn.textContent = '✓ 복사됨';
+                btn.classList.add('copied');
+                setTimeout(function () {
+                    btn.textContent = '복사';
+                    btn.classList.remove('copied');
+                }, 1800);
+            }
+        });
+        pre.appendChild(btn);
+    });
+})();
+</script>
+
 <script>
 // 목차 활성화 (스크롤 위치 기반)
 (function(){
