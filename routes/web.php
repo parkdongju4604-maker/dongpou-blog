@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\Admin\StatsController;
 use App\Http\Controllers\Admin\CssThemeController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\PostController;
@@ -14,6 +15,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [PostController::class, 'index'])->name('home');
 Route::get('/category/{category}', [PostController::class, 'category'])->name('posts.category');
 Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show');
+
+// ── 검색
+Route::get('/search', [SearchController::class, 'index'])->name('search');
 
 // ── SEO
 Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->name('sitemap');

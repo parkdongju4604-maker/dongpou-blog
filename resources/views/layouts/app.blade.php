@@ -98,13 +98,47 @@
         <nav class="nav-desktop" aria-label="주 메뉴">
             <a href="{{ route('home') }}">홈</a>
         </nav>
+        <div style="display:flex;align-items:center;gap:4px;">
+            <button id="search-toggle" onclick="openSearch()" aria-label="검색"
+                style="background:none;border:none;cursor:pointer;padding:8px;border-radius:8px;color:#555;display:flex;align-items:center;transition:background .15s"
+                onmouseover="this.style.background='#f4f4f8'" onmouseout="this.style.background='none'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+            </button>
         <button class="nav-toggle" id="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-            </svg>
-        </button>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+        </div>{{-- end header-right --}}
     </div>
 </header>
+
+{{-- 검색 오버레이 --}}
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="검색"
+     style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);"
+     onclick="if(event.target===this)closeSearch()">
+    <div style="max-width:620px;margin:80px auto 0;padding:0 20px;">
+        <form action="{{ route('search') }}" method="GET" role="search"
+              style="display:flex;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.3);">
+            <label for="overlay-search-input" style="display:none">검색어</label>
+            <input type="search" id="overlay-search-input" name="q"
+                   placeholder="검색어를 입력하세요..."
+                   autocomplete="off"
+                   style="flex:1;padding:18px 22px;border:none;font-size:1.1rem;outline:none;font-family:inherit;background:transparent;color:#0f0f23;">
+            <button type="submit"
+                    style="padding:0 22px;background:none;border:none;cursor:pointer;color:#4f46e5;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+            </button>
+        </form>
+        <p style="text-align:center;margin-top:14px;font-size:.8rem;color:rgba(255,255,255,.5)">
+            ESC 로 닫기
+        </p>
+    </div>
+</div>
 
 {{-- 모바일 메뉴 --}}
 <div class="nav-mobile" id="nav-mobile"
@@ -140,7 +174,15 @@
     toggle.addEventListener('click', openNav);
     overlay.addEventListener('click', closeNav);
     close.addEventListener('click', closeNav);
-    document.addEventListener('keydown', e => { if(e.key==='Escape') closeNav(); });
+    document.addEventListener('keydown', e => { if(e.key==='Escape') { closeNav(); closeSearch(); } });
+
+    // 검색 오버레이
+    const searchOverlay = document.getElementById('search-overlay');
+    const searchInput   = document.getElementById('overlay-search-input');
+    window.openSearch  = function() { searchOverlay.style.display='block'; document.body.style.overflow='hidden'; setTimeout(()=>searchInput.focus(),50); };
+    window.closeSearch = function() { searchOverlay.style.display='none'; document.body.style.overflow=''; };
+    // Ctrl+K / Cmd+K 단축키
+    document.addEventListener('keydown', e => { if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openSearch();} });
 
     // 읽기 진행 바
     const bar = document.getElementById('reading-progress');

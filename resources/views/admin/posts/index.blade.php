@@ -8,6 +8,40 @@
         <h3>전체 글 <span style="font-size:.8rem;color:#94a3b8;font-weight:400">{{ $posts->total() }}개</span></h3>
         <a href="{{ route('admin.posts.create') }}" class="btn btn-primary btn-sm">+ 새 글 작성</a>
     </div>
+
+    {{-- 검색 / 필터 --}}
+    <form method="GET" action="{{ route('admin.posts.index') }}"
+          style="display:flex;gap:8px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid #f1f5f9;background:#fafcff;align-items:center;">
+        <div style="position:relative;flex:1;min-width:180px;">
+            <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" name="q" value="{{ $q }}" placeholder="제목/내용 검색..."
+                   style="width:100%;padding:7px 10px 7px 32px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.85rem;outline:none;"
+                   onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor='#e2e8f0'">
+        </div>
+        <select name="status"
+                style="padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.85rem;outline:none;background:#fff;cursor:pointer;"
+                onchange="this.form.submit()">
+            <option value=""        {{ $status===''          ? 'selected':'' }}>전체 상태</option>
+            <option value="published" {{ $status==='published' ? 'selected':'' }}>✅ 발행됨</option>
+            <option value="scheduled" {{ $status==='scheduled' ? 'selected':'' }}>⏰ 예약됨</option>
+            <option value="draft"     {{ $status==='draft'     ? 'selected':'' }}>🗒 임시저장</option>
+        </select>
+        <select name="category"
+                style="padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.85rem;outline:none;background:#fff;cursor:pointer;"
+                onchange="this.form.submit()">
+            <option value="">전체 카테고리</option>
+            @foreach($categories as $cat)
+                <option value="{{ $cat }}" {{ $category===$cat ? 'selected':'' }}>{{ $cat }}</option>
+            @endforeach
+        </select>
+        <button type="submit" style="padding:7px 16px;background:#4f46e5;color:#fff;border:none;border-radius:7px;font-size:.85rem;font-weight:600;cursor:pointer;">검색</button>
+        @if($q || $status || $category)
+            <a href="{{ route('admin.posts.index') }}"
+               style="padding:7px 14px;background:#f1f5f9;color:#64748b;border-radius:7px;font-size:.83rem;font-weight:500;text-decoration:none;">✕ 초기화</a>
+        @endif
+    </form>
     <div class="table-wrap">
         <table>
             <thead>

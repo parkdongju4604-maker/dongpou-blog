@@ -54,10 +54,40 @@ class PostController extends Controller
         ]);
     }
 
-    public function adminIndex()
+    public function adminIndex(Request $request)
     {
-        $posts = Post::orderByDesc('created_at')->paginate(20);
-        return view('admin.posts.index', compact('posts'));
+        $q        = trim($request->get('q', ''));
+        $status   = $request->get('status', '');
+        $category = $request->get('category', '');
+
+        $query = Post::orderByDesc('created_at');
+
+        // 키워드 검색
+        if ($q) {
+            $query->where(function ($qb) use ($q) {
+                $qb->where('title',    'LIKE', "%{$q}%")
+                   ->orWhere('excerpt', 'LIKE', "%{$q}%");
+            });
+        }
+
+        // 상태 필터
+        if ($status === 'published') {
+            $query->where('published', true)->where('published_at', '<=', now());
+        } elseif ($status === 'scheduled') {
+            $query->where('published', true)->where('published_at', '>', now());
+        } elseif ($status === 'draft') {
+            $query->where('published', false);
+        }
+
+        // 카테고리 필터
+        if ($category) {
+            $query->where('category', $category);
+        }
+
+        $posts      = $query->paginate(20)->withQueryString();
+        $categories = Post::distinct()->pluck('category');
+
+        return view('admin.posts.index', compact('posts', 'q', 'status', 'category', 'categories'));
     }
 
     public function create()
