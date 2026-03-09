@@ -126,6 +126,23 @@ class Post extends Model
     }
 
     /**
+     * 마크다운 콘텐츠에서 첫 번째 이미지 URL 추출
+     * 지원 형식: ![alt](url) / ![alt](url =Nx) / <img src="url">
+     */
+    public static function extractFirstImage(string $content): ?string
+    {
+        // 마크다운 이미지: ![alt](url) 또는 ![alt](url =Nx)
+        if (preg_match('/!\[[^\]]*\]\(([^\s\)]+)(?:\s*=[^\)]*)?\)/', $content, $m)) {
+            return $m[1];
+        }
+        // HTML img 태그 (직접 입력한 경우)
+        if (preg_match('/<img[^>]+src=["\']([^"\']+)["\']/', $content, $m)) {
+            return $m[1];
+        }
+        return null;
+    }
+
+    /**
      * 읽기 시간 (한국어 기준: 분당 약 500자)
      */
     public function getReadingTimeAttribute(): int

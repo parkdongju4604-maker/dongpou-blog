@@ -82,6 +82,10 @@ class PostController extends Controller
 
         [$published, $publishedAt] = $this->resolvePublishState($request);
 
+        // 수동 OG 이미지 없으면 본문 첫 이미지 자동 세팅
+        $ogImage   = $request->og_image ?: Post::extractFirstImage($request->content);
+        $thumbnail = $ogImage;
+
         Post::create([
             'title'            => $request->title,
             'slug'             => Post::makeSlug($request->title),
@@ -90,10 +94,11 @@ class PostController extends Controller
             'category'         => $request->category,
             'published'        => $published,
             'published_at'     => $publishedAt,
+            'thumbnail'        => $thumbnail,
             'meta_title'       => $request->meta_title       ?: null,
             'meta_description' => $request->meta_description ?: null,
             'meta_keywords'    => $request->meta_keywords    ?: null,
-            'og_image'         => $request->og_image         ?: null,
+            'og_image'         => $ogImage,
             'noindex'          => $request->boolean('noindex'),
         ]);
 
@@ -122,6 +127,10 @@ class PostController extends Controller
 
         [$published, $publishedAt] = $this->resolvePublishState($request);
 
+        // 수동 OG 이미지 없으면 본문 첫 이미지 자동 세팅
+        $ogImage   = $request->og_image ?: Post::extractFirstImage($request->content);
+        $thumbnail = $ogImage;
+
         $post->update([
             'title'            => $request->title,
             'content'          => $request->content,
@@ -129,10 +138,11 @@ class PostController extends Controller
             'category'         => $request->category,
             'published'        => $published,
             'published_at'     => $publishedAt,
+            'thumbnail'        => $thumbnail,
             'meta_title'       => $request->meta_title       ?: null,
             'meta_description' => $request->meta_description ?: null,
             'meta_keywords'    => $request->meta_keywords    ?: null,
-            'og_image'         => $request->og_image         ?: null,
+            'og_image'         => $ogImage,
             'noindex'          => $request->boolean('noindex'),
         ]);
 
