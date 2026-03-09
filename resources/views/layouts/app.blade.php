@@ -86,6 +86,7 @@
             color: #1a1a2e;
             line-height: 1.7;
             -webkit-font-smoothing: antialiased;
+            display: flex; flex-direction: column; min-height: 100vh;
         }
         a { color: inherit; text-decoration: none; }
         img { max-width: 100%; height: auto; display: block; }
@@ -139,7 +140,7 @@
         .nav-drawer a:hover { color: var(--primary); }
 
         /* ── MAIN ── */
-        main { max-width: 1200px; margin: 0 auto; padding: 48px 28px; min-height: 70vh; }
+        main { max-width: 1200px; margin: 0 auto; padding: 48px 28px; flex: 1; width: 100%; }
 
         /* ── HERO (INDEX) ── */
         .hero {
