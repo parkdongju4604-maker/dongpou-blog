@@ -197,6 +197,27 @@
     const editorWrap    = document.getElementById('editor-wrap');
     const DEFAULT_H     = parseInt(localStorage.getItem('editorHeight') || '560');
 
+    // ── 이미지 너비 맵 (url → width) ──
+    const imgWidthMap = {};
+
+    // 초기 콘텐츠에서 =Nx 너비 정보 추출 후 제거 (WYSIWYG 호환)
+    function preprocessContent(md) {
+        return md.replace(/!\[([^\]]*)\]\(([^ \)\n]+) =(\d+)x\)/g, function(match, alt, url, w) {
+            imgWidthMap[url] = parseInt(w);
+            return `![${alt}](${url})`;
+        });
+    }
+
+    // 저장 전 마크다운에 너비 정보 재삽입
+    function postprocessMarkdown(md) {
+        return md.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, function(match, alt, url) {
+            if (imgWidthMap[url]) {
+                return `![${alt}](${url} =${imgWidthMap[url]}x)`;
+            }
+            return match;
+        });
+    }
+
     // ── 이미지 다이얼로그 상태 ──
     const overlay   = document.getElementById('img-dialog-overlay');
     const preview   = document.getElementById('img-dialog-preview');
@@ -208,11 +229,10 @@
     let   pendingUrl      = null;
 
     function openImgDialog(url, blobOrName) {
-        // 미리보기 표시
         preview.src = url;
         preview.style.display = 'block';
-        altInput.value  = '';
-        widthInput.value = '';
+        altInput.value   = '';
+        widthInput.value = imgWidthMap[url] || '';
         overlay.classList.add('open');
         altInput.focus();
     }
@@ -229,14 +249,16 @@
         const alt   = altInput.value.trim() || '이미지';
         const width = parseInt(widthInput.value);
 
+        // 항상 콜백으로 WYSIWYG에 이미지 삽입 (텍스트 삽입 X)
+        pendingCallback(pendingUrl, alt);
+
+        // 너비 정보는 맵에 저장 → 저장 시 마크다운에 반영
         if (width > 0) {
-            // 너비 지정: 마크다운 직접 삽입
-            editor.insertText(`![${alt}](${pendingUrl} =${width}x)`);
-            hiddenTA.value = editor.getMarkdown();
+            imgWidthMap[pendingUrl] = width;
         } else {
-            // 너비 없음: 기본 콜백 사용
-            pendingCallback(pendingUrl, alt);
+            delete imgWidthMap[pendingUrl];
         }
+
         closeImgDialog();
     });
 
@@ -273,7 +295,7 @@
         height: DEFAULT_H + 'px',
         initialEditType: 'wysiwyg',
         previewStyle: 'tab',
-        initialValue: hiddenTA.value,
+        initialValue: preprocessContent(hiddenTA.value),
         language: 'ko-KR',
         toolbarItems: [
             ['heading', 'bold', 'italic', 'strike'],
@@ -326,7 +348,8 @@
     const form = document.querySelector('form');
     if (form) {
         form.addEventListener('submit', function () {
-            hiddenTA.value = editor.getMarkdown();
+            // 너비 정보 재삽입 후 저장
+            hiddenTA.value = postprocessMarkdown(editor.getMarkdown());
         });
     }
 
