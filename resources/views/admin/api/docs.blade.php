@@ -106,6 +106,58 @@ curl -X GET {{ $baseUrl }}/categories \
         </div>
     </div>
 
+    {{-- ── POST /images ── --}}
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/images</span>
+            <span class="endpoint-desc">이미지 업로드 → URL 반환</span>
+        </div>
+        <div class="endpoint-body">
+            <h4>Request Headers</h4>
+            <pre>Authorization: Bearer {token}
+Content-Type:  multipart/form-data</pre>
+
+            <h4 style="margin-top:16px">Request Body (form-data)</h4>
+            <table class="param-table">
+                <thead>
+                    <tr><th>필드</th><th>타입</th><th>설명</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>image</code> <span class="required-badge">필수</span></td>
+                        <td>file</td>
+                        <td>이미지 파일 (JPG, PNG, GIF, WEBP / 최대 10MB)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4 style="margin-top:16px">Request 예시</h4>
+            <pre><span class="c"># curl (파일 업로드)</span>
+curl -X POST {{ $baseUrl }}/images \
+  -H <span class="s">"Authorization: Bearer {token}"</span> \
+  -F <span class="s">"image=@/path/to/photo.jpg"</span></pre>
+
+            <h4 style="margin-top:16px">Response 201</h4>
+            <pre>{
+  <span class="k">"data"</span>: {
+    <span class="k">"url"</span>:      <span class="s">"http://43.200.236.216/storage/uploads/posts/2026/03/1234567890_abcdef12.jpg"</span>,
+    <span class="k">"path"</span>:     <span class="s">"uploads/posts/2026/03/1234567890_abcdef12.jpg"</span>,
+    <span class="k">"filename"</span>: <span class="s">"1234567890_abcdef12.jpg"</span>,
+    <span class="k">"size"</span>:     <span class="n">204800</span>,
+    <span class="k">"mime"</span>:     <span class="s">"image/jpeg"</span>
+  },
+  <span class="k">"message"</span>: <span class="s">"이미지가 업로드되었습니다."</span>
+}</pre>
+
+            <div style="margin-top:14px;padding:12px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:.82rem;color:#92400e">
+                💡 <strong>사용 방법:</strong>
+                이미지를 먼저 업로드해서 받은 <code>url</code>을 글 본문 마크다운에 삽입하세요.<br>
+                <code style="background:#fef3c7;padding:1px 5px;border-radius:3px">![이미지 설명](반환된 url)</code>
+            </div>
+        </div>
+    </div>
+
     {{-- ── POST /posts ── --}}
     <div class="endpoint-card">
         <div class="endpoint-header">
@@ -238,10 +290,20 @@ HEADERS  = {
 categories = requests.get(f<span class="s">"{BASE_URL}/categories"</span>, headers=HEADERS).json()
 print(categories)
 
-<span class="c"># 2. 글 발행</span>
+<span class="c"># 2. 이미지 업로드 → URL 획득</span>
+with open(<span class="s">"/path/to/image.jpg"</span>, <span class="s">"rb"</span>) as f:
+    img_resp = requests.post(
+        f<span class="s">"{BASE_URL}/images"</span>,
+        headers={<span class="s">"Authorization"</span>: f<span class="s">"Bearer {TOKEN}"</span>},  <span class="c"># Content-Type 은 자동 설정</span>
+        files={<span class="s">"image"</span>: (<span class="s">"image.jpg"</span>, f, <span class="s">"image/jpeg"</span>)},
+    )
+image_url = img_resp.json()[<span class="s">"data"</span>][<span class="s">"url"</span>]
+print(<span class="s">"업로드된 이미지 URL:"</span>, image_url)
+
+<span class="c"># 3. 이미지 URL을 본문에 포함해 글 발행</span>
 post_data = {
     <span class="s">"title"</span>:        <span class="s">"Python으로 글 자동 발행"</span>,
-    <span class="s">"content"</span>:      <span class="s">"## 내용\n\n파이썬으로 작성한 글입니다."</span>,
+    <span class="s">"content"</span>:      f<span class="s">"## 내용\n\n![대표 이미지]({image_url})\n\n파이썬으로 작성한 글입니다."</span>,
     <span class="s">"category"</span>:     <span class="s">"개발"</span>,
     <span class="s">"excerpt"</span>:      <span class="s">"API를 활용한 자동 발행 예시"</span>,
     <span class="s">"publish_type"</span>: <span class="s">"publish"</span>,

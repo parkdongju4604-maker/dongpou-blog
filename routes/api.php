@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\CategoryApiController;
+use App\Http\Controllers\Api\ImageApiController;
 use App\Http\Controllers\Api\PostApiController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,4 +12,5 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('api.token')->group(function () {
     Route::get('/categories',   [CategoryApiController::class, 'index']);
     Route::post('/posts',       [PostApiController::class,     'store']);
+    Route::post('/images',      [ImageApiController::class,    'store']);
 });
