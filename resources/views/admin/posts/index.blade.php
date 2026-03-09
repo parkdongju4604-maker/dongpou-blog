@@ -50,6 +50,7 @@
                     <th>제목</th>
                     <th>카테고리</th>
                     <th>상태</th>
+                    <th>조회수</th>
                     <th>작성일</th>
                     <th>관리</th>
                 </tr>
@@ -76,6 +77,7 @@
                             <span class="badge badge-gray">임시저장</span>
                         @endif
                     </td>
+                    <td style="color:#64748b;font-weight:500;white-space:nowrap">👁 {{ number_format($post->view_count) }}</td>
                     <td style="color:#94a3b8;white-space:nowrap">{{ $post->created_at->format('Y.m.d') }}</td>
                     <td>
                         <div style="display:flex;gap:6px">
@@ -90,7 +92,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" style="text-align:center;padding:40px;color:#94a3b8">
+                    <td colspan="7" style="text-align:center;padding:40px;color:#94a3b8">
                         아직 작성한 글이 없습니다.
                     </td>
                 </tr>

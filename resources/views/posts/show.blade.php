@@ -122,6 +122,8 @@
                     </time>
                     <span class="post-meta-sep">·</span>
                     <span class="post-meta-badge">읽기 {{ $post->reading_time }}분</span>
+                    <span class="post-meta-sep">·</span>
+                    <span class="post-meta-badge">👁 {{ number_format($post->view_count) }}</span>
                 </div>
             </header>
 

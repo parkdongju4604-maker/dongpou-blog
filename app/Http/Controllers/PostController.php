@@ -31,6 +31,7 @@ class PostController extends Controller
     public function show(string $slug)
     {
         $post    = Post::published()->where('slug', $slug)->firstOrFail();
+        $post->increment('view_count');
         $related = Post::published()
             ->where('category', $post->category)
             ->where('id', '!=', $post->id)

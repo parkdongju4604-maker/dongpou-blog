@@ -62,6 +62,8 @@
                         </time>
                         <span class="card-meta-dot" aria-hidden="true"></span>
                         <span>{{ $post->reading_time }}분 읽기</span>
+                        <span class="card-meta-dot" aria-hidden="true"></span>
+                        <span>👁 {{ number_format($post->view_count) }}</span>
                     </div>
                 </div>
             </a>

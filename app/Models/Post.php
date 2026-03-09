@@ -17,6 +17,7 @@ class Post extends Model
         'title', 'slug', 'excerpt', 'content',
         'thumbnail', 'category', 'published', 'published_at',
         'meta_title', 'meta_description', 'meta_keywords', 'og_image', 'noindex',
+        'view_count',
     ];
 
     protected $casts = [
