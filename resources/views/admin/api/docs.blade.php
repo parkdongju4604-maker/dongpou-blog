@@ -17,6 +17,7 @@
 }
 .method-get    { background:#dbeafe;color:#1d4ed8; }
 .method-post   { background:#dcfce7;color:#15803d; }
+.method-patch  { background:#fef9c3;color:#854d0e; }
 .method-delete { background:#fee2e2;color:#dc2626; }
 .endpoint-path {
     font-family:monospace;font-size:.9rem;font-weight:600;color:#0f172a;
@@ -74,6 +75,130 @@
         <p style="font-size:.78rem;color:#3b82f6;margin-top:10px">
             토큰은 <a href="{{ route('admin.api-tokens.index') }}" style="color:#2563eb;font-weight:600">토큰 관리</a> 페이지에서 발급받으세요.
         </p>
+    </div>
+
+    {{-- ── GET /settings ── --}}
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/settings</span>
+            <span class="endpoint-desc">전체 사이트 설정 조회</span>
+        </div>
+        <div class="endpoint-body">
+            <h4>Request</h4>
+            <pre><span class="c"># curl</span>
+curl -X GET {{ $baseUrl }}/settings \
+  -H <span class="s">"Authorization: Bearer {token}"</span></pre>
+
+            <h4 style="margin-top:16px">Response 200</h4>
+            <pre>{
+  <span class="k">"data"</span>: {
+    <span class="k">"general"</span>: {
+      <span class="k">"blog_name"</span>:      <span class="s">"DongPou Blog"</span>,
+      <span class="k">"blog_tagline"</span>:   <span class="s">"개인 블로그"</span>,
+      <span class="k">"footer_text"</span>:    <span class="s">"All rights reserved."</span>,
+      <span class="k">"hero_title"</span>:     <span class="s">"최신 글"</span>,
+      <span class="k">"hero_subtitle"</span>:  <span class="s">"다양한 주제의 글을 만나보세요."</span>,
+      <span class="k">"posts_per_page"</span>: <span class="s">"9"</span>
+    },
+    <span class="k">"appearance"</span>: {
+      <span class="k">"primary_color"</span>: <span class="s">"#4f46e5"</span>
+    },
+    <span class="k">"seo"</span>: {
+      <span class="k">"blog_description"</span>:  <span class="s">"개인 블로그입니다."</span>,
+      <span class="k">"meta_keywords"</span>:    <span class="s">"블로그,개발"</span>,
+      <span class="k">"author_name"</span>:      <span class="s">"홍길동"</span>,
+      <span class="k">"og_image_default"</span>: <span class="s">""</span>,
+      <span class="k">"robots_index"</span>:     <span class="s">"index,follow"</span>,
+      <span class="k">"google_analytics"</span>: <span class="s">"G-XXXXXXXXXX"</span>,
+      <span class="k">"twitter_handle"</span>:   <span class="s">"@handle"</span>,
+      <span class="k">"kakao_js_key"</span>:     <span class="s">""</span>,
+      <span class="k">"head_code"</span>:        <span class="s">""</span>
+    },
+    <span class="k">"verification"</span>: {
+      <span class="k">"google_site_verification"</span>: <span class="s">""</span>,
+      <span class="k">"naver_site_verification"</span>:  <span class="s">""</span>
+    }
+  }
+}</pre>
+        </div>
+    </div>
+
+    {{-- ── PATCH /settings ── --}}
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method-badge method-patch">PATCH</span>
+            <span class="endpoint-path">/api/settings</span>
+            <span class="endpoint-desc">사이트 설정 수정 (전달된 키만 업데이트)</span>
+        </div>
+        <div class="endpoint-body">
+            <h4>Request Headers</h4>
+            <pre>Authorization: Bearer {token}
+Content-Type:  application/json</pre>
+
+            <h4 style="margin-top:16px">Request Body — 허용 키 목록</h4>
+            <table class="param-table">
+                <thead><tr><th>키</th><th>그룹</th><th>설명</th></tr></thead>
+                <tbody>
+                    <tr><td><code>blog_name</code></td><td>general</td><td>블로그 이름</td></tr>
+                    <tr><td><code>blog_tagline</code></td><td>general</td><td>블로그 부제</td></tr>
+                    <tr><td><code>footer_text</code></td><td>general</td><td>푸터 텍스트</td></tr>
+                    <tr><td><code>hero_title</code></td><td>general</td><td>메인 히어로 제목</td></tr>
+                    <tr><td><code>hero_subtitle</code></td><td>general</td><td>메인 히어로 부제</td></tr>
+                    <tr><td><code>posts_per_page</code></td><td>general</td><td>페이지당 글 수 (1~100)</td></tr>
+                    <tr><td><code>primary_color</code></td><td>appearance</td><td>메인 색상 (예: #4f46e5)</td></tr>
+                    <tr><td><code>blog_description</code></td><td>seo</td><td>블로그 설명 (meta description)</td></tr>
+                    <tr><td><code>meta_keywords</code></td><td>seo</td><td>메타 키워드</td></tr>
+                    <tr><td><code>author_name</code></td><td>seo</td><td>작성자 이름</td></tr>
+                    <tr><td><code>og_image_default</code></td><td>seo</td><td>기본 OG 이미지 URL</td></tr>
+                    <tr><td><code>robots_index</code></td><td>seo</td><td>robots 지시자 (예: index,follow)</td></tr>
+                    <tr><td><code>google_analytics</code></td><td>seo</td><td>GA 측정 ID (G-XXXXXXXXXX)</td></tr>
+                    <tr><td><code>twitter_handle</code></td><td>seo</td><td>트위터 핸들 (@handle)</td></tr>
+                    <tr><td><code>kakao_js_key</code></td><td>seo</td><td>카카오 JS SDK 키</td></tr>
+                    <tr><td><code>head_code</code></td><td>seo</td><td>&lt;head&gt;에 삽입할 커스텀 코드</td></tr>
+                    <tr><td><code>google_site_verification</code></td><td>verification</td><td>구글 사이트 인증 코드</td></tr>
+                    <tr><td><code>naver_site_verification</code></td><td>verification</td><td>네이버 사이트 인증 코드</td></tr>
+                </tbody>
+            </table>
+            <p style="font-size:.78rem;color:#64748b;margin-top:8px">
+                💡 전달하지 않은 키는 그대로 유지됩니다. 원하는 키만 포함하세요.
+            </p>
+
+            <h4 style="margin-top:16px">Request 예시</h4>
+            <pre><span class="c"># 블로그 이름 + GA ID만 변경</span>
+curl -X PATCH {{ $baseUrl }}/settings \
+  -H <span class="s">"Authorization: Bearer {token}"</span> \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{"blog_name":"My Blog","google_analytics":"G-XXXXXXXXXX"}'</span>
+
+<span class="c"># Python — 여러 설정 한번에 변경</span>
+import requests
+res = requests.patch(
+    <span class="s">"{{ $baseUrl }}/settings"</span>,
+    headers={<span class="s">"Authorization"</span>: <span class="s">"Bearer {token}"</span>},
+    json={
+        <span class="s">"blog_name"</span>:        <span class="s">"My Blog"</span>,
+        <span class="s">"blog_description"</span>: <span class="s">"개인 기술 블로그"</span>,
+        <span class="s">"meta_keywords"</span>:    <span class="s">"개발,파이썬,라라벨"</span>,
+        <span class="s">"posts_per_page"</span>:   <span class="n">12</span>,
+    }
+)</pre>
+
+            <h4 style="margin-top:16px">Response 200</h4>
+            <pre>{
+  <span class="k">"message"</span>: <span class="s">"2개 설정이 업데이트되었습니다."</span>,
+  <span class="k">"updated"</span>: [<span class="s">"blog_name"</span>, <span class="s">"google_analytics"</span>],
+  <span class="k">"data"</span>: {
+    <span class="c">// ... 업데이트 후 전체 설정 (GET /settings 응답과 동일 구조)</span>
+  }
+}</pre>
+
+            <h4 style="margin-top:16px">Response 422 (허용되지 않은 키만 전달된 경우)</h4>
+            <pre>{
+  <span class="k">"message"</span>: <span class="s">"변경할 설정이 없습니다. 허용된 키를 확인하세요."</span>,
+  <span class="k">"allowed_keys"</span>: [<span class="s">"blog_name"</span>, <span class="s">"blog_tagline"</span>, <span class="s">"..."</span>]
+}</pre>
+        </div>
     </div>
 
     {{-- ── GET /categories ── --}}

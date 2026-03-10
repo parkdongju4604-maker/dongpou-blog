@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\CategoryApiController;
 use App\Http\Controllers\Api\ImageApiController;
 use App\Http\Controllers\Api\PostApiController;
+use App\Http\Controllers\Api\SettingApiController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -10,6 +11,8 @@ use Illuminate\Support\Facades\Route;
  * 인증: Authorization: Bearer {token}
  */
 Route::middleware('api.token')->group(function () {
+    Route::get('/settings',                [SettingApiController::class,  'index']);
+    Route::patch('/settings',              [SettingApiController::class,  'update']);
     Route::get('/categories',              [CategoryApiController::class, 'index']);
     Route::post('/categories',             [CategoryApiController::class, 'store']);
     Route::delete('/categories/{category}',[CategoryApiController::class, 'destroy']);
