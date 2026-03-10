@@ -107,9 +107,6 @@
         <a href="{{ route('home') }}" class="logo" aria-label="{{ $blogName }} 홈">
             <span class="logo-dot"></span>{{ $blogName }}
         </a>
-        <nav class="nav-desktop" aria-label="주 메뉴">
-            <a href="{{ route('home') }}">홈</a>
-        </nav>
         <div style="display:flex;align-items:center;gap:4px;">
             <button id="search-toggle" onclick="openSearch()" aria-label="검색"
                 style="background:none;border:none;cursor:pointer;padding:8px;border-radius:8px;color:#555;display:flex;align-items:center;transition:background .15s"
@@ -162,7 +159,6 @@
                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
         </button>
-        <a href="{{ route('home') }}">홈</a>
     </nav>
 </div>
 
