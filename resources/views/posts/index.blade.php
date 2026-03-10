@@ -12,7 +12,7 @@
 @endphp
 
 @extends('layouts.app')
-@section('title', $blogName . ($isTagPage ? ' — #'.$tag->name : (isset($category) ? ' — '.$category : '')))
+@section('title', $isTagPage ? '#'.$tag->name.' | '.$blogName : (isset($category) ? $category.' | '.$blogName : $blogName))
 @section('description', $blogDesc)
 @section('canonical', $canonicalUrl)
 

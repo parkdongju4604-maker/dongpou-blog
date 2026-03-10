@@ -3,16 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\Tag;
 use App\Models\Setting;
 
 class SitemapController extends Controller
 {
     public function sitemap()
     {
-        $posts = Post::published()->orderByDesc('updated_at')->get();
-        $baseUrl = rtrim(Setting::get('app_url', config('app.url')), '/');
+        $posts      = Post::published()->orderByDesc('updated_at')->get();
+        $categories = Post::published()->reorder()->distinct()->pluck('category');
+        $tags       = Tag::has('posts')->get();
+        $baseUrl    = rtrim(Setting::get('app_url', config('app.url')), '/');
 
-        return response()->view('sitemap', compact('posts', 'baseUrl'))
+        return response()->view('sitemap', compact('posts', 'categories', 'tags', 'baseUrl'))
             ->header('Content-Type', 'application/xml');
     }
 

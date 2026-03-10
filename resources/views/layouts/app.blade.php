@@ -69,7 +69,21 @@
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','{{ $gaId }}');</script>
     @endif
     @php
-        $websiteSchema = ['@context'=>'https://schema.org','@type'=>'WebSite','name'=>$blogName,'description'=>$blogDesc,'url'=>url('/')];
+        $websiteSchema = [
+            '@context'       => 'https://schema.org',
+            '@type'          => 'WebSite',
+            'name'           => $blogName,
+            'description'    => $blogDesc,
+            'url'            => url('/'),
+            'potentialAction' => [
+                '@type'       => 'SearchAction',
+                'target'      => [
+                    '@type'       => 'EntryPoint',
+                    'urlTemplate' => url('/search') . '?q={search_term_string}',
+                ],
+                'query-input' => 'required name=search_term_string',
+            ],
+        ];
     @endphp
     <script type="application/ld+json">{!! json_encode($websiteSchema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!}</script>
     {{-- 피드 자동 감지 --}}

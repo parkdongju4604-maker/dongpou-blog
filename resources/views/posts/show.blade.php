@@ -14,6 +14,10 @@
     $blogName     = Setting::get('blog_name', config('app.name'));
     $baseUrl      = url('/');
 
+    // wordCount: 한국어 포함이므로 공백 제거 후 글자 수로 산정
+    $plainText = strip_tags($post->content ?? '');
+    $wordCount = mb_strlen(preg_replace('/\s+/', '', $plainText));
+
     $articleSchema = [
         '@context'         => 'https://schema.org',
         '@type'            => 'Article',
@@ -21,11 +25,27 @@
         'description'      => $excerpt,
         'datePublished'    => $post->published_at?->toIso8601String(),
         'dateModified'     => $post->updated_at->toIso8601String(),
+        'wordCount'        => $wordCount,
         'author'           => ['@type' => 'Person', 'name' => $authorName],
-        'publisher'        => ['@type' => 'Organization', 'name' => $blogName, 'url' => $baseUrl],
+        'publisher'        => [
+            '@type' => 'Organization',
+            'name'  => $blogName,
+            'url'   => $baseUrl,
+            'logo'  => [
+                '@type' => 'ImageObject',
+                'url'   => $ogImgDefault ?: ($baseUrl . '/favicon.ico'),
+            ],
+        ],
         'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $postUrl],
     ];
-    if ($ogImage) { $articleSchema['image'] = $ogImage; }
+    if ($ogImage) {
+        $articleSchema['image'] = [
+            '@type'  => 'ImageObject',
+            'url'    => $ogImage,
+            'width'  => 1200,
+            'height' => 630,
+        ];
+    }
 
     $breadcrumbSchema = [
         '@context' => 'https://schema.org',
@@ -60,7 +80,7 @@
 
 @extends('layouts.app')
 
-@section('title', $seoTitle . ' — ' . $blogName)
+@section('title', $seoTitle . ' | ' . $blogName)
 @section('description', $excerpt)
 @section('author', $authorName)
 @section('canonical', $postUrl)
