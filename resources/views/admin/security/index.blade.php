@@ -140,10 +140,9 @@
                     );
                 @endphp
                 <tr style="{{ $isBlocked ? 'background:#fff5f5' : '' }}">
-                    <td style="max-width:420px">
-                        <div style="font-size:.78rem;font-family:monospace;color:#374151;
-                             overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-                             max-width:420px" title="{{ $log->user_agent }}">
+                    <td>
+                        <div style="font-size:.76rem;font-family:monospace;color:#374151;
+                             word-break:break-all;line-height:1.5;max-width:560px">
                             {{ $log->user_agent ?: '(없음)' }}
                         </div>
                         @if($isBlocked)
