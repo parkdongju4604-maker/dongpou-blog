@@ -292,14 +292,23 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
 .comment-form-title { font-size: .95rem; font-weight: 700; color: #1e293b; margin-bottom: 16px; }
 .comment-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
 .comment-form-grid input,
-.comment-form textarea {
+.comment-form-section textarea,
+.reply-form-wrap textarea {
     padding: 9px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px;
     font-size: .875rem; outline: none; width: 100%; box-sizing: border-box;
-    transition: border-color .12s; font-family: inherit;
+    transition: border-color .12s; font-family: inherit; background: #fff;
 }
 .comment-form-grid input:focus,
-.comment-form textarea:focus { border-color: var(--primary, #4f46e5); }
-.comment-form textarea { resize: vertical; min-height: 100px; margin-bottom: 10px; width: 100%; box-sizing: border-box; display: block; }
+.comment-form-section textarea:focus,
+.reply-form-wrap textarea:focus { border-color: var(--primary, #4f46e5); outline: none; }
+.comment-form-section textarea {
+    display: block; resize: vertical; min-height: 110px;
+    margin-bottom: 10px; line-height: 1.6;
+}
+.reply-form-wrap textarea {
+    display: block; resize: vertical; min-height: 70px;
+    margin-bottom: 8px; line-height: 1.6;
+}
 .comment-notice {
     padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: .875rem; font-weight: 500;
     background: #f0fdf4; color: #166534; border: 1px solid #86efac;
@@ -308,7 +317,7 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
 
 @media (max-width: 600px) {
     .comment-form-grid { grid-template-columns: 1fr; }
-    .comment-form textarea { min-height: 90px; }
+    .comment-form-section textarea { min-height: 90px; font-size: .875rem; }
 }
 </style>
 <style>
@@ -620,9 +629,9 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
                             <input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off">
                             <div class="comment-form-grid">
                                 <input type="text"     name="author_name"  placeholder="이름 *" required maxlength="50">
-                                <input type="password" name="password"     placeholder="비밀번호 (삭제용)" minlength="4">
+                                <input type="password" name="password" placeholder="비밀번호 * (삭제 시 사용)" required minlength="4" maxlength="30">
                             </div>
-                            <textarea name="content" placeholder="답글을 입력하세요..." required minlength="2" maxlength="2000" style="min-height:70px"></textarea>
+                            <textarea name="content" placeholder="답글을 입력하세요..." required minlength="2" maxlength="2000"></textarea>
                             <div style="display:flex;gap:8px;justify-content:flex-end">
                                 <button type="button" class="btn btn-secondary btn-sm"
                                         onclick="toggleReplyForm({{ $comment->id }})">취소</button>
@@ -652,8 +661,8 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
                             @error('author_name')<p style="font-size:.73rem;color:#ef4444;margin-top:3px">{{ $message }}</p>@enderror
                         </div>
                         <div>
-                            <input type="password" name="password" placeholder="비밀번호 (삭제용, 선택)" minlength="4">
-                            <p style="font-size:.71rem;color:#94a3b8;margin-top:3px">비밀번호 설정 시 본인 삭제 가능</p>
+                            <input type="password" name="password" placeholder="비밀번호 * (삭제 시 사용)" required minlength="4" maxlength="30">
+                            @error('password')<p style="font-size:.73rem;color:#ef4444;margin-top:3px">{{ $message }}</p>@enderror
                         </div>
                     </div>
                     <textarea name="content" placeholder="댓글을 입력하세요... (2000자 이내)"

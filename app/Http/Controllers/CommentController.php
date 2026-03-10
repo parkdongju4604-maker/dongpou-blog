@@ -20,13 +20,14 @@ class CommentController extends Controller
 
         $request->validate([
             'author_name' => 'required|string|max:50',
-            'author_email'=> 'nullable|email|max:200',
-            'password'    => 'nullable|string|min:4|max:30',
+            'password'    => 'required|string|min:4|max:30',
             'content'     => 'required|string|min:2|max:2000',
             'parent_id'   => 'nullable|integer|exists:comments,id',
             'website'     => 'max:0',   // honeypot: 값이 있으면 실패
         ], [
             'author_name.required' => '이름을 입력해주세요.',
+            'password.required'    => '비밀번호를 입력해주세요.',
+            'password.min'         => '비밀번호는 최소 4자 이상이어야 합니다.',
             'content.required'     => '댓글 내용을 입력해주세요.',
             'content.min'          => '댓글은 최소 2자 이상이어야 합니다.',
             'content.max'          => '댓글은 2000자를 초과할 수 없습니다.',
