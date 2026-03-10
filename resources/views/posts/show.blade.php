@@ -235,6 +235,47 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
     .share-btn { padding: 8px 14px; font-size: .8rem; }
 }
 
+/* ── 관련 글 ── */
+.related-section { margin-top: 56px; padding-top: 40px; border-top: 1px solid var(--border, #e5e7eb); }
+.related-title { font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 20px; letter-spacing: -.2px; }
+.related-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+}
+.related-card {
+    border: 1.5px solid var(--border, #e5e7eb); border-radius: 12px;
+    overflow: hidden; text-decoration: none; color: inherit;
+    display: flex; flex-direction: column;
+    transition: border-color .15s, box-shadow .15s, transform .15s;
+    background: #fff;
+}
+.related-card:hover { border-color: var(--primary, #4f46e5); box-shadow: 0 4px 20px rgba(79,70,229,.1); transform: translateY(-2px); }
+.related-thumb {
+    width: 100%; aspect-ratio: 16/9; object-fit: cover;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: block;
+}
+.related-thumb-fallback {
+    width: 100%; aspect-ratio: 16/9;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+}
+.related-body { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.related-cat {
+    font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--primary, #4f46e5);
+}
+.related-card-title {
+    font-size: .9rem; font-weight: 700; color: #1e293b; line-height: 1.5;
+    overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.related-meta { font-size: .75rem; color: #94a3b8; margin-top: auto; padding-top: 6px; }
+@media (max-width: 720px) {
+    .related-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+}
+@media (max-width: 480px) {
+    .related-grid { grid-template-columns: 1fr; }
+}
+
 /* ── 댓글 섹션 ── */
 .comments-section { margin-top: 48px; padding-top: 36px; border-top: 1px solid var(--border, #e5e7eb); }
 .comments-title { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-bottom: 28px; }
@@ -443,17 +484,35 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
 
         {{-- 관련 글 --}}
         @if($related->isNotEmpty())
-        <aside class="related" aria-label="관련 글">
-            <h2>관련 글</h2>
+        @php
+            $fallbackGradients = [
+                'linear-gradient(135deg,#667eea,#764ba2)',
+                'linear-gradient(135deg,#f093fb,#f5576c)',
+                'linear-gradient(135deg,#4facfe,#00f2fe)',
+                'linear-gradient(135deg,#43e97b,#38f9d7)',
+                'linear-gradient(135deg,#fa709a,#fee140)',
+                'linear-gradient(135deg,#a18cd1,#fbc2eb)',
+            ];
+        @endphp
+        <aside class="related-section" aria-label="관련 글">
+            <h2 class="related-title">📚 관련 글</h2>
             <div class="related-grid">
-                @foreach($related as $r)
-                <a href="{{ route('posts.show', $r->slug) }}" class="card">
-                    <div class="card-body" style="padding:18px">
-                        <div class="card-category">{{ $r->category }}</div>
-                        <div class="card-title" style="font-size:.95rem">{{ $r->title }}</div>
-                        <div class="card-meta" style="margin-top:10px">
-                            <time datetime="{{ $r->published_at?->toIso8601String() }}">{{ $r->published_at?->format('Y.m.d') }}</time>
+                @foreach($related as $i => $r)
+                <a href="{{ route('posts.show', $r->slug) }}" class="related-card">
+                    @if($r->thumbnail)
+                        <img class="related-thumb" src="{{ $r->thumbnail }}" alt="{{ $r->title }}" loading="lazy">
+                    @else
+                        <div class="related-thumb-fallback"
+                             style="background:{{ $fallbackGradients[$i % count($fallbackGradients)] }}">
                         </div>
+                    @endif
+                    <div class="related-body">
+                        <span class="related-cat">{{ $r->category }}</span>
+                        <span class="related-card-title">{{ $r->title }}</span>
+                        <span class="related-meta">
+                            {{ $r->published_at?->format('Y.m.d') }}
+                            · {{ $r->reading_time }}분 읽기
+                        </span>
                     </div>
                 </a>
                 @endforeach

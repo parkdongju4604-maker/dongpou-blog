@@ -34,10 +34,21 @@ class PostController extends Controller
         $post    = Post::published()->where('slug', $slug)->firstOrFail();
         $post->increment('view_count');
 
+        // 같은 카테고리 관련 글 (최대 3개)
         $related = Post::published()
             ->where('category', $post->category)
             ->where('id', '!=', $post->id)
             ->limit(3)->get();
+
+        // 부족하면 최신 글로 보충
+        if ($related->count() < 3) {
+            $excludeIds = $related->pluck('id')->push($post->id);
+            $extra = Post::published()
+                ->whereNotIn('id', $excludeIds)
+                ->limit(3 - $related->count())
+                ->get();
+            $related = $related->merge($extra);
+        }
 
         // 이전 글 (더 오래된 글)
         $prevPost = Post::published()
