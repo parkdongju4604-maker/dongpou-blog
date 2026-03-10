@@ -29,12 +29,12 @@
 <div class="card">
     <div class="card-header">
         <h3>
-            @match($filter)
+            @switch($filter)
                 @case('spam') 🚫 스팸 댓글 @break
                 @case('pending') ⏳ 검토 대기 @break
                 @case('approved') ✅ 승인된 댓글 @break
                 @default 전체 댓글
-            @endmatch
+            @endswitch
             <span style="font-size:.8rem;color:#94a3b8;font-weight:400">{{ $comments->total() }}개</span>
         </h3>
         @if($filter === 'spam' && $counts['spam'] > 0)
