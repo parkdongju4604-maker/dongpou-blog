@@ -165,22 +165,62 @@ Content-Type:  application/json</pre>
             </p>
 
             <h4 style="margin-top:16px">Request 예시</h4>
-            <pre><span class="c"># 블로그 이름 + GA ID만 변경</span>
+            <pre><span class="c"># curl — 전체 설정 한번에 변경</span>
 curl -X PATCH {{ $baseUrl }}/settings \
   -H <span class="s">"Authorization: Bearer {token}"</span> \
   -H <span class="s">"Content-Type: application/json"</span> \
-  -d <span class="s">'{"blog_name":"My Blog","google_analytics":"G-XXXXXXXXXX"}'</span>
+  -d '{
+    <span class="k">"blog_name"</span>:                    <span class="s">"DongPou Blog"</span>,
+    <span class="k">"blog_tagline"</span>:                 <span class="s">"개인 기술 블로그"</span>,
+    <span class="k">"footer_text"</span>:                  <span class="s">"All rights reserved."</span>,
+    <span class="k">"hero_title"</span>:                   <span class="s">"최신 글"</span>,
+    <span class="k">"hero_subtitle"</span>:                <span class="s">"다양한 주제의 글을 만나보세요."</span>,
+    <span class="k">"posts_per_page"</span>:               <span class="n">9</span>,
+    <span class="k">"primary_color"</span>:               <span class="s">"#4f46e5"</span>,
+    <span class="k">"blog_description"</span>:            <span class="s">"개발, 일상, 생각을 기록하는 블로그입니다."</span>,
+    <span class="k">"meta_keywords"</span>:               <span class="s">"블로그,개발,파이썬,라라벨"</span>,
+    <span class="k">"author_name"</span>:                 <span class="s">"박동주"</span>,
+    <span class="k">"og_image_default"</span>:            <span class="s">"https://example.com/og-default.jpg"</span>,
+    <span class="k">"robots_index"</span>:                <span class="s">"index,follow"</span>,
+    <span class="k">"google_analytics"</span>:            <span class="s">"G-XXXXXXXXXX"</span>,
+    <span class="k">"twitter_handle"</span>:              <span class="s">"@handle"</span>,
+    <span class="k">"kakao_js_key"</span>:                <span class="s">"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</span>,
+    <span class="k">"head_code"</span>:                   <span class="s">"&lt;meta name=\"theme-color\" content=\"#4f46e5\"&gt;"</span>,
+    <span class="k">"google_site_verification"</span>:    <span class="s">"AbCdEfGhIjKlMnOpQrStUvWxYz123456"</span>,
+    <span class="k">"naver_site_verification"</span>:     <span class="s">"abcdef1234567890abcdef1234567890"</span>
+  }'
 
-<span class="c"># Python — 여러 설정 한번에 변경</span>
+<span class="c"># Python — 전체 설정 한번에 변경</span>
 import requests
 res = requests.patch(
     <span class="s">"{{ $baseUrl }}/settings"</span>,
-    headers={<span class="s">"Authorization"</span>: <span class="s">"Bearer {token}"</span>},
+    headers={
+        <span class="s">"Authorization"</span>: <span class="s">"Bearer {token}"</span>,
+        <span class="s">"Content-Type"</span>:  <span class="s">"application/json"</span>,
+    },
     json={
-        <span class="s">"blog_name"</span>:        <span class="s">"My Blog"</span>,
-        <span class="s">"blog_description"</span>: <span class="s">"개인 기술 블로그"</span>,
-        <span class="s">"meta_keywords"</span>:    <span class="s">"개발,파이썬,라라벨"</span>,
-        <span class="s">"posts_per_page"</span>:   <span class="n">12</span>,
+        <span class="c"># General</span>
+        <span class="s">"blog_name"</span>:                 <span class="s">"DongPou Blog"</span>,
+        <span class="s">"blog_tagline"</span>:              <span class="s">"개인 기술 블로그"</span>,
+        <span class="s">"footer_text"</span>:               <span class="s">"All rights reserved."</span>,
+        <span class="s">"hero_title"</span>:                <span class="s">"최신 글"</span>,
+        <span class="s">"hero_subtitle"</span>:             <span class="s">"다양한 주제의 글을 만나보세요."</span>,
+        <span class="s">"posts_per_page"</span>:            <span class="n">9</span>,
+        <span class="c"># Appearance</span>
+        <span class="s">"primary_color"</span>:            <span class="s">"#4f46e5"</span>,
+        <span class="c"># SEO</span>
+        <span class="s">"blog_description"</span>:         <span class="s">"개발, 일상, 생각을 기록하는 블로그입니다."</span>,
+        <span class="s">"meta_keywords"</span>:            <span class="s">"블로그,개발,파이썬,라라벨"</span>,
+        <span class="s">"author_name"</span>:              <span class="s">"박동주"</span>,
+        <span class="s">"og_image_default"</span>:         <span class="s">"https://example.com/og-default.jpg"</span>,
+        <span class="s">"robots_index"</span>:             <span class="s">"index,follow"</span>,
+        <span class="s">"google_analytics"</span>:         <span class="s">"G-XXXXXXXXXX"</span>,
+        <span class="s">"twitter_handle"</span>:           <span class="s">"@handle"</span>,
+        <span class="s">"kakao_js_key"</span>:             <span class="s">"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</span>,
+        <span class="s">"head_code"</span>:                <span class="s">""</span>,
+        <span class="c"># Verification</span>
+        <span class="s">"google_site_verification"</span>: <span class="s">"AbCdEfGhIjKlMnOpQrStUvWxYz123456"</span>,
+        <span class="s">"naver_site_verification"</span>:  <span class="s">"abcdef1234567890abcdef1234567890"</span>,
     }
 )</pre>
 
