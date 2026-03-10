@@ -97,6 +97,25 @@
     </div>
 </div>
 
+{{-- 자동 저장 복원 배너 (새 글 작성 시에만) --}}
+@if(!isset($post))
+<div id="draft-restore-banner"
+     style="display:none;align-items:center;gap:12px;padding:12px 18px;margin-bottom:16px;
+            background:#fffbeb;border:1px solid #fde68a;border-radius:10px;font-size:.875rem;color:#92400e">
+    <span>💾 이전에 작성 중이던 임시 저장본이 있습니다.</span>
+    <div style="display:flex;gap:8px;margin-left:auto;flex-shrink:0">
+        <button type="button" id="draft-restore-btn"
+                style="padding:5px 14px;background:#f59e0b;color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer">
+            불러오기
+        </button>
+        <button type="button" id="draft-discard-btn"
+                style="padding:5px 12px;background:#fff;color:#92400e;border:1px solid #fde68a;border-radius:6px;font-size:.8rem;cursor:pointer">
+            무시
+        </button>
+    </div>
+</div>
+@endif
+
 {{-- 폼 레이아웃 --}}
 <div style="display:grid;grid-template-columns:1fr 240px;gap:20px;align-items:start">
     <div>
@@ -111,10 +130,11 @@
 
         {{-- 에디터 --}}
         <div class="form-group">
-            <label class="form-label" style="display:flex;align-items:center;justify-content:space-between">
+            <label class="form-label" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
                 <span>내용 *</span>
-                <span style="font-size:.72rem;color:#94a3b8;font-weight:400">
-                    이미지 드래그&드롭 · 클립보드 붙여넣기 지원
+                <span style="display:flex;align-items:center;gap:10px">
+                    <span id="autosave-status" style="font-size:.72rem;color:#94a3b8;font-weight:400;transition:color .3s"></span>
+                    <span style="font-size:.72rem;color:#94a3b8;font-weight:400">이미지 드래그&드롭 · 클립보드 붙여넣기 지원</span>
                 </span>
             </label>
             <textarea name="content" id="content-hidden" style="display:none">{{ old('content', $post->content ?? '') }}</textarea>
@@ -404,6 +424,8 @@
         form.addEventListener('submit', function () {
             // 너비 정보 재삽입 후 저장
             hiddenTA.value = postprocessMarkdown(editor.getMarkdown());
+            // 자동 저장 초안 삭제
+            try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
         });
     }
 
@@ -411,6 +433,86 @@
     document.getElementById('post-title').addEventListener('keydown', function (e) {
         if (e.key === 'Tab') { e.preventDefault(); editor.focus(); }
     });
+
+    // ── 자동 저장 ──
+    const DRAFT_KEY    = 'post_draft_{{ isset($post) ? $post->id : "new" }}';
+    const statusEl     = document.getElementById('autosave-status');
+    let   saveTimer    = null;
+
+    function collectDraft() {
+        return {
+            title:        document.getElementById('post-title').value,
+            excerpt:      document.querySelector('input[name="excerpt"]')?.value || '',
+            content:      postprocessMarkdown(editor.getMarkdown()),
+            category:     document.querySelector('select[name="category"]')?.value || '',
+            publish_type: document.querySelector('input[name="publish_type"]:checked')?.value || 'draft',
+            scheduled_at: document.querySelector('input[name="scheduled_at"]')?.value || '',
+            savedAt:      new Date().toISOString(),
+        };
+    }
+
+    function saveDraft() {
+        try {
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(collectDraft()));
+            if (statusEl) {
+                const t = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+                statusEl.textContent = '💾 ' + t + ' 자동 저장됨';
+                statusEl.style.color = '#10b981';
+                clearTimeout(statusEl._fade);
+                statusEl._fade = setTimeout(() => { statusEl.style.color = '#94a3b8'; }, 3000);
+            }
+        } catch(e) {}
+    }
+
+    function scheduleSave() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(saveDraft, 2000); // 입력 멈춘 후 2초
+    }
+
+    // 입력 이벤트 훅
+    document.getElementById('post-title').addEventListener('input', scheduleSave);
+    document.querySelector('input[name="excerpt"]')?.addEventListener('input', scheduleSave);
+    document.querySelector('select[name="category"]')?.addEventListener('change', scheduleSave);
+    document.querySelectorAll('input[name="publish_type"]').forEach(r => r.addEventListener('change', scheduleSave));
+    editor.on('change', scheduleSave);
+
+    // 주기적 저장 (30초)
+    setInterval(saveDraft, 30000);
+
+    // ── 복원 (새 글 작성 페이지만) ──
+    @if(!isset($post))
+    (function () {
+        try {
+            const saved = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+            if (!saved || !saved.title) return;
+
+            const banner = document.getElementById('draft-restore-banner');
+            if (banner) banner.style.display = 'flex';
+
+            document.getElementById('draft-restore-btn')?.addEventListener('click', function () {
+                document.getElementById('post-title').value = saved.title || '';
+                const excerptEl = document.querySelector('input[name="excerpt"]');
+                if (excerptEl && saved.excerpt) excerptEl.value = saved.excerpt;
+                const catEl = document.querySelector('select[name="category"]');
+                if (catEl && saved.category) catEl.value = saved.category;
+                const radio = document.querySelector(`input[name="publish_type"][value="${saved.publish_type}"]`);
+                if (radio) { radio.checked = true; onPublishTypeChange(); }
+                const schedEl = document.querySelector('input[name="scheduled_at"]');
+                if (schedEl && saved.scheduled_at) schedEl.value = saved.scheduled_at;
+                if (saved.content) {
+                    editor.setMarkdown(preprocessContent(saved.content));
+                    hiddenTA.value = saved.content;
+                }
+                if (banner) banner.style.display = 'none';
+            });
+
+            document.getElementById('draft-discard-btn')?.addEventListener('click', function () {
+                try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
+                if (banner) banner.style.display = 'none';
+            });
+        } catch(e) {}
+    })();
+    @endif
 })();
 
 // ── 발행 타입 변경 핸들러 ──
