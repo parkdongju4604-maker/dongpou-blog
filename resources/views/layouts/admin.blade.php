@@ -22,8 +22,6 @@
         .sidebar-logo .brand {
             font-size: 1.15rem; font-weight: 800; color: #f8fafc; letter-spacing: -.3px;
         }
-        .sidebar-logo .brand span { color: #818cf8; }
-        .sidebar-logo .sub { font-size: .72rem; color: #64748b; margin-top: 2px; }
 
         .sidebar-nav { flex: 1; padding: 16px 0; }
         .nav-section { padding: 0 12px; margin-bottom: 6px; }
@@ -172,9 +170,8 @@
 {{-- ── 사이드바 ── --}}
 <aside class="sidebar">
     <div class="sidebar-logo">
-        <a href="{{ route('home') }}">
-            <div class="brand">Dong<span>Pou</span> Blog</div>
-            <div class="sub">관리자 패널</div>
+        <a href="{{ route('admin.dashboard') }}">
+            <div class="brand">관리자 패널</div>
         </a>
     </div>
 
