@@ -13,6 +13,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
 
 // ── 공개 블로그 라우트
@@ -22,6 +23,10 @@ Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show')
 
 // ── 검색
 Route::get('/search', [SearchController::class, 'index'])->name('search');
+
+// ── 태그
+Route::get('/tags/{slug}',  [TagController::class, 'index'])->name('tags.show');
+Route::get('/api/tags/all', [TagController::class, 'all'])->name('tags.all');
 
 // ── 댓글
 Route::post('/posts/{post}/comments',      [CommentController::class, 'store'])->name('comments.store');

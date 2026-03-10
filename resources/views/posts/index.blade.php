@@ -4,12 +4,15 @@
     $heroSubtitle = Setting::get('hero_subtitle', '다양한 주제의 글을 만나보세요.');
     $blogName     = Setting::get('blog_name',     config('app.name'));
     $blogDesc     = Setting::get('blog_description', Setting::get('blog_tagline',''));
-    $canonicalUrl = isset($category) ? route('posts.category', $category) : route('home');
+    $isTagPage    = isset($tag);
+    $canonicalUrl = $isTagPage
+        ? route('tags.show', $tag->slug)
+        : (isset($category) ? route('posts.category', $category) : route('home'));
     $blogSchema   = ['@context'=>'https://schema.org','@type'=>'Blog','name'=>$blogName,'description'=>$blogDesc,'url'=>url('/')];
 @endphp
 
 @extends('layouts.app')
-@section('title', $blogName . (isset($category) ? ' — ' . $category : ''))
+@section('title', $blogName . ($isTagPage ? ' — #'.$tag->name : (isset($category) ? ' — '.$category : '')))
 @section('description', $blogDesc)
 @section('canonical', $canonicalUrl)
 
@@ -21,8 +24,18 @@
 
 <section class="hero" aria-labelledby="hero-heading">
     <div class="hero-eyebrow">{{ $blogName }}</div>
-    <h1 id="hero-heading">{{ isset($category) ? $category : $heroTitle }}</h1>
-    <p>{{ isset($category) ? $category . ' 카테고리의 글 목록입니다.' : $heroSubtitle }}</p>
+    <h1 id="hero-heading">
+        @if($isTagPage) #{{ $tag->name }}
+        @elseif(isset($category)) {{ $category }}
+        @else {{ $heroTitle }}
+        @endif
+    </h1>
+    <p>
+        @if($isTagPage) <span style="background:#eef2ff;color:#4f46e5;padding:3px 10px;border-radius:20px;font-size:.875rem">#{{ $tag->name }}</span> 태그가 달린 글 {{ $posts->total() }}개
+        @elseif(isset($category)) {{ $category }} 카테고리의 글 목록입니다.
+        @else {{ $heroSubtitle }}
+        @endif
+    </p>
 </section>
 
 <nav aria-label="카테고리 필터">
@@ -65,6 +78,13 @@
                         <span class="card-meta-dot" aria-hidden="true"></span>
                         <span>👁 {{ number_format($post->view_count) }}</span>
                     </div>
+                    @if($post->relationLoaded('tags') && $post->tags->isNotEmpty())
+                    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px">
+                        @foreach($post->tags->take(3) as $tag)
+                        <span style="display:inline-block;padding:2px 8px;background:#eef2ff;color:#4f46e5;border-radius:20px;font-size:.7rem;font-weight:600">#{{ $tag->name }}</span>
+                        @endforeach
+                    </div>
+                    @endif
                 </div>
             </a>
         </article>

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
@@ -149,5 +150,10 @@ class Post extends Model
     {
         $charCount = mb_strlen(strip_tags($this->content), 'UTF-8');
         return max(1, (int) ceil($charCount / 500));
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class);
     }
 }

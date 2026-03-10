@@ -235,6 +235,17 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
     .share-btn { padding: 8px 14px; font-size: .8rem; }
 }
 
+/* ── 태그 ── */
+.post-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.post-tag {
+    display: inline-block; padding: 4px 12px;
+    background: var(--primary-light, #eef2ff); color: var(--primary, #4f46e5);
+    border: 1px solid var(--primary-mid, #c7d2fe); border-radius: 20px;
+    font-size: .78rem; font-weight: 600; text-decoration: none;
+    transition: background .15s, color .15s;
+}
+.post-tag:hover { background: var(--primary, #4f46e5); color: #fff; }
+
 /* ── 관련 글 ── */
 .related-section { margin-top: 56px; padding-top: 40px; border-top: 1px solid var(--border, #e5e7eb); }
 .related-title { font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 20px; letter-spacing: -.2px; }
@@ -449,6 +460,13 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
                     <span class="post-meta-sep">·</span>
                     <span class="post-meta-badge">👁 {{ number_format($post->view_count) }}</span>
                 </div>
+                @if($post->tags->isNotEmpty())
+                <div class="post-tags">
+                    @foreach($post->tags as $tag)
+                    <a href="{{ route('tags.show', $tag->slug) }}" class="post-tag">#{{ $tag->name }}</a>
+                    @endforeach
+                </div>
+                @endif
             </header>
 
             {{-- 모바일 목차 (960px 이하에서만 표시) --}}

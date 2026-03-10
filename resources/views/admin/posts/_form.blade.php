@@ -157,6 +157,32 @@
                    value="{{ old('excerpt', $post->excerpt ?? '') }}"
                    placeholder="글의 핵심 내용을 한 줄로 요약하세요">
         </div>
+
+        {{-- 태그 --}}
+        <div class="form-group">
+            <label class="form-label">
+                태그
+                <span style="font-weight:400;color:#94a3b8;font-size:.75rem;margin-left:4px">Enter 또는 쉼표로 추가 (선택)</span>
+            </label>
+            @php
+                $existingTags = isset($post) ? $post->tags->pluck('name')->join(',') : old('tags','');
+            @endphp
+            <input type="hidden" name="tags" id="tags-hidden" value="{{ $existingTags }}">
+            <div id="tag-input-wrap" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;
+                 padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:text;
+                 min-height:42px;background:#fff;transition:border-color .15s"
+                 onclick="document.getElementById('tag-text-input').focus()">
+                <div id="tag-chips" style="display:contents"></div>
+                <input type="text" id="tag-text-input" placeholder="태그 입력..."
+                       style="border:none;outline:none;font-size:.875rem;flex:1;min-width:80px;background:transparent;padding:2px 4px"
+                       autocomplete="off">
+            </div>
+            {{-- 자동완성 드롭다운 --}}
+            <div id="tag-suggestions" style="display:none;position:absolute;z-index:50;
+                 background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;
+                 box-shadow:0 4px 20px rgba(0,0,0,.1);max-height:180px;overflow-y:auto;margin-top:4px;min-width:180px">
+            </div>
+        </div>
     </div>
 
     {{-- 사이드 패널 --}}
@@ -513,6 +539,101 @@
         } catch(e) {}
     })();
     @endif
+})();
+
+// ── 태그 칩 UI ──
+(function () {
+    const hidden      = document.getElementById('tags-hidden');
+    const wrap        = document.getElementById('tag-input-wrap');
+    const chipsEl     = document.getElementById('tag-chips');
+    const textInput   = document.getElementById('tag-text-input');
+    const suggestions = document.getElementById('tag-suggestions');
+    let   allTags     = [];   // 서버에서 가져온 전체 태그 목록
+    let   tags        = hidden.value ? hidden.value.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+    // 초기 칩 렌더
+    tags.forEach(addChip);
+    syncHidden();
+
+    // 전체 태그 가져오기 (자동완성용)
+    fetch('{{ route("tags.all") }}')
+        .then(r => r.json())
+        .then(data => { allTags = data.map(t => t.name); })
+        .catch(() => {});
+
+    function addChip(name) {
+        name = name.trim();
+        if (!name || tags.includes(name)) return;
+        tags.push(name);
+        const chip = document.createElement('span');
+        chip.style.cssText = 'display:inline-flex;align-items:center;gap:4px;padding:3px 10px;' +
+            'background:#eef2ff;color:#4f46e5;border-radius:20px;font-size:.78rem;font-weight:600;white-space:nowrap';
+        chip.innerHTML = `${name}<button type="button" style="background:none;border:none;cursor:pointer;color:#6366f1;font-size:.9rem;padding:0;line-height:1" data-name="${name}">×</button>`;
+        chip.querySelector('button').addEventListener('click', function () {
+            tags = tags.filter(t => t !== this.dataset.name);
+            chip.remove();
+            syncHidden();
+        });
+        chipsEl.appendChild(chip);
+        syncHidden();
+    }
+
+    function syncHidden() {
+        hidden.value = tags.join(',');
+    }
+
+    function showSuggestions(q) {
+        const filtered = allTags.filter(t => t.toLowerCase().includes(q.toLowerCase()) && !tags.includes(t));
+        if (!filtered.length || !q) { suggestions.style.display = 'none'; return; }
+        suggestions.innerHTML = filtered.slice(0, 8).map(t =>
+            `<div style="padding:8px 14px;cursor:pointer;font-size:.875rem;transition:background .1s"
+                  onmousedown="event.preventDefault()"
+                  onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background=''"
+                  data-tag="${t}">${t}</div>`
+        ).join('');
+        suggestions.style.display = 'block';
+        suggestions.querySelectorAll('[data-tag]').forEach(el => {
+            el.addEventListener('click', () => {
+                addChip(el.dataset.tag);
+                textInput.value = '';
+                suggestions.style.display = 'none';
+                textInput.focus();
+            });
+        });
+    }
+
+    textInput.addEventListener('keydown', function (e) {
+        if ((e.key === 'Enter' || e.key === ',') && this.value.trim()) {
+            e.preventDefault();
+            addChip(this.value.replace(/,/g, '').trim());
+            this.value = '';
+            suggestions.style.display = 'none';
+        } else if (e.key === 'Backspace' && !this.value && tags.length) {
+            const last = tags[tags.length - 1];
+            tags.pop();
+            chipsEl.lastElementChild?.remove();
+            syncHidden();
+        }
+    });
+
+    textInput.addEventListener('input', function () {
+        showSuggestions(this.value.trim());
+    });
+
+    textInput.addEventListener('blur', function () {
+        setTimeout(() => { suggestions.style.display = 'none'; }, 150);
+        if (this.value.trim()) {
+            addChip(this.value.trim());
+            this.value = '';
+        }
+    });
+
+    wrap.addEventListener('focus', () => {
+        wrap.style.borderColor = '#6366f1';
+    }, true);
+    wrap.addEventListener('blur', () => {
+        wrap.style.borderColor = '#e2e8f0';
+    }, true);
 })();
 
 // ── 발행 타입 변경 핸들러 ──

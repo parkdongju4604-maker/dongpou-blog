@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\Setting;
+use App\Models\Tag;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,7 @@ class PostController extends Controller
     public function index()
     {
         $perPage    = (int) Setting::get('posts_per_page', 9);
-        $posts      = Post::published()->paginate($perPage);
+        $posts      = Post::with('tags')->published()->paginate($perPage);
         $categories = Post::published()->reorder()->distinct()->pluck('category');
         return view('posts.index', compact('posts', 'categories'));
     }
@@ -24,14 +25,14 @@ class PostController extends Controller
     public function category(string $category)
     {
         $perPage    = (int) Setting::get('posts_per_page', 9);
-        $posts      = Post::published()->where('category', $category)->paginate($perPage);
+        $posts      = Post::with('tags')->published()->where('category', $category)->paginate($perPage);
         $categories = Post::published()->reorder()->distinct()->pluck('category');
         return view('posts.index', compact('posts', 'categories', 'category'));
     }
 
     public function show(string $slug)
     {
-        $post    = Post::published()->where('slug', $slug)->firstOrFail();
+        $post    = Post::with('tags')->published()->where('slug', $slug)->firstOrFail();
         $post->increment('view_count');
 
         // 같은 카테고리 관련 글 (최대 3개)
@@ -140,6 +141,7 @@ class PostController extends Controller
             'category'     => 'required|max:100',
             'publish_type' => 'required|in:draft,publish,schedule',
             'scheduled_at' => 'required_if:publish_type,schedule|nullable|date|after:now',
+            'tags'         => 'nullable|string|max:500',
         ], [
             'scheduled_at.required_if' => '예약 발행 날짜/시간을 입력해주세요.',
             'scheduled_at.after'       => '예약 시간은 현재 시간 이후여야 합니다.',
@@ -150,7 +152,7 @@ class PostController extends Controller
         // 본문 첫 이미지를 썸네일로 자동 추출
         $thumbnail = Post::extractFirstImage($request->content);
 
-        Post::create([
+        $post = Post::create([
             'title'        => $request->title,
             'slug'         => Post::makeSlug($request->title),
             'content'      => $request->content,
@@ -161,11 +163,17 @@ class PostController extends Controller
             'thumbnail'    => $thumbnail,
         ]);
 
+        // 태그 동기화
+        $tagNames = array_filter(array_map('trim', explode(',', $request->tags ?? '')));
+        $tagIds   = Tag::syncFromNames($tagNames);
+        $post->tags()->sync($tagIds);
+
         return redirect()->route('admin.posts.index')->with('success', '글이 등록되었습니다.');
     }
 
     public function edit(Post $post)
     {
+        $post->load('tags');
         $categories = Category::ordered()->get();
         return view('admin.posts.edit', compact('post', 'categories'));
     }
@@ -179,6 +187,7 @@ class PostController extends Controller
             'category'     => 'required|max:100',
             'publish_type' => 'required|in:draft,publish,schedule',
             'scheduled_at' => 'required_if:publish_type,schedule|nullable|date|after:now',
+            'tags'         => 'nullable|string|max:500',
         ], [
             'scheduled_at.required_if' => '예약 발행 날짜/시간을 입력해주세요.',
             'scheduled_at.after'       => '예약 시간은 현재 시간 이후여야 합니다.',
@@ -198,6 +207,11 @@ class PostController extends Controller
             'published_at' => $publishedAt,
             'thumbnail'    => $thumbnail,
         ]);
+
+        // 태그 동기화
+        $tagNames = array_filter(array_map('trim', explode(',', $request->tags ?? '')));
+        $tagIds   = Tag::syncFromNames($tagNames);
+        $post->tags()->sync($tagIds);
 
         return redirect()->route('admin.posts.index')->with('success', '수정되었습니다.');
     }
