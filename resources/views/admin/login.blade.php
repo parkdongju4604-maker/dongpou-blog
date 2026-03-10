@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>관리자 로그인 - DongPou Blog</title>
+    <title>관리자 로그인</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -145,7 +145,7 @@
                 <div class="logo-icon">
                     <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
                 </div>
-                <h1>DongPou Blog</h1>
+                <h1>관리자 패널</h1>
             </a>
             <p>관리자 로그인</p>
         </div>
