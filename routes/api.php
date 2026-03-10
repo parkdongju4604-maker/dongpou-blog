@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Route;
  * 인증: Authorization: Bearer {token}
  */
 Route::middleware('api.token')->group(function () {
-    Route::get('/categories',   [CategoryApiController::class, 'index']);
-    Route::post('/posts',       [PostApiController::class,     'store']);
-    Route::post('/images',      [ImageApiController::class,    'store']);
+    Route::get('/categories',              [CategoryApiController::class, 'index']);
+    Route::post('/categories',             [CategoryApiController::class, 'store']);
+    Route::delete('/categories/{category}',[CategoryApiController::class, 'destroy']);
+    Route::post('/posts',                  [PostApiController::class,     'store']);
+    Route::post('/images',                 [ImageApiController::class,    'store']);
 });

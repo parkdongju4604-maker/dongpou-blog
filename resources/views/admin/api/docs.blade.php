@@ -15,8 +15,9 @@
     font-size:.72rem;font-weight:800;padding:4px 10px;border-radius:6px;letter-spacing:.05em;
     font-family:monospace;flex-shrink:0;
 }
-.method-get  { background:#dbeafe;color:#1d4ed8; }
-.method-post { background:#dcfce7;color:#15803d; }
+.method-get    { background:#dbeafe;color:#1d4ed8; }
+.method-post   { background:#dcfce7;color:#15803d; }
+.method-delete { background:#fee2e2;color:#dc2626; }
 .endpoint-path {
     font-family:monospace;font-size:.9rem;font-weight:600;color:#0f172a;
 }
@@ -92,16 +93,118 @@ curl -X GET {{ $baseUrl }}/categories \
             <pre>{
   <span class="k">"data"</span>: [
     {
-      <span class="k">"id"</span>:   <span class="n">1</span>,
-      <span class="k">"name"</span>: <span class="s">"개발"</span>,
-      <span class="k">"slug"</span>: <span class="s">"개발"</span>
+      <span class="k">"id"</span>:          <span class="n">1</span>,
+      <span class="k">"name"</span>:        <span class="s">"개발"</span>,
+      <span class="k">"slug"</span>:        <span class="s">"개발"</span>,
+      <span class="k">"post_count"</span>: <span class="n">12</span>
     },
     {
-      <span class="k">"id"</span>:   <span class="n">2</span>,
-      <span class="k">"name"</span>: <span class="s">"일상"</span>,
-      <span class="k">"slug"</span>: <span class="s">"일상"</span>
+      <span class="k">"id"</span>:          <span class="n">2</span>,
+      <span class="k">"name"</span>:        <span class="s">"일상"</span>,
+      <span class="k">"slug"</span>:        <span class="s">"일상"</span>,
+      <span class="k">"post_count"</span>: <span class="n">3</span>
     }
   ]
+}</pre>
+        </div>
+    </div>
+
+    {{-- ── POST /categories ── --}}
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/categories</span>
+            <span class="endpoint-desc">카테고리 생성</span>
+        </div>
+        <div class="endpoint-body">
+            <h4>Request Headers</h4>
+            <pre>Authorization: Bearer {token}
+Content-Type:  application/json</pre>
+
+            <h4 style="margin-top:16px">Request Body (JSON)</h4>
+            <table class="param-table">
+                <thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><code>name</code> <span class="required-badge">필수</span></td>
+                        <td>string</td>
+                        <td>카테고리 이름 (최대 100자, 중복 불가)</td>
+                    </tr>
+                    <tr>
+                        <td><code>description</code> <span class="optional-badge">선택</span></td>
+                        <td>string</td>
+                        <td>카테고리 설명 (최대 500자)</td>
+                    </tr>
+                    <tr>
+                        <td><code>sort_order</code> <span class="optional-badge">선택</span></td>
+                        <td>integer</td>
+                        <td>정렬 순서 (기본값: 0)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4 style="margin-top:16px">Request 예시</h4>
+            <pre><span class="c"># curl</span>
+curl -X POST {{ $baseUrl }}/categories \
+  -H <span class="s">"Authorization: Bearer {token}"</span> \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{"name": "개발", "sort_order": 1}'</span>
+
+<span class="c"># Python</span>
+import requests
+res = requests.post(
+    <span class="s">"{{ $baseUrl }}/categories"</span>,
+    headers={<span class="s">"Authorization"</span>: <span class="s">"Bearer {token}"</span>},
+    json={<span class="s">"name"</span>: <span class="s">"개발"</span>, <span class="s">"sort_order"</span>: <span class="n">1</span>}
+)</pre>
+
+            <h4 style="margin-top:16px">Response 201</h4>
+            <pre>{
+  <span class="k">"message"</span>: <span class="s">"카테고리가 생성되었습니다."</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"id"</span>:   <span class="n">3</span>,
+    <span class="k">"name"</span>: <span class="s">"개발"</span>,
+    <span class="k">"slug"</span>: <span class="s">"개발"</span>
+  }
+}</pre>
+
+            <h4 style="margin-top:16px">Response 422 (중복 또는 유효성 오류)</h4>
+            <pre>{
+  <span class="k">"message"</span>: <span class="s">"이미 존재하는 카테고리입니다."</span>,
+  <span class="k">"errors"</span>: { <span class="k">"name"</span>: [<span class="s">"이미 존재하는 카테고리입니다."</span>] }
+}</pre>
+        </div>
+    </div>
+
+    {{-- ── DELETE /categories/{id} ── --}}
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method-badge method-delete">DELETE</span>
+            <span class="endpoint-path">/api/categories/{id}</span>
+            <span class="endpoint-desc">카테고리 삭제</span>
+        </div>
+        <div class="endpoint-body">
+            <h4>Request</h4>
+            <pre><span class="c"># curl</span>
+curl -X DELETE {{ $baseUrl }}/categories/3 \
+  -H <span class="s">"Authorization: Bearer {token}"</span>
+
+<span class="c"># Python</span>
+import requests
+res = requests.delete(
+    <span class="s">"{{ $baseUrl }}/categories/3"</span>,
+    headers={<span class="s">"Authorization"</span>: <span class="s">"Bearer {token}"</span>}
+)</pre>
+
+            <h4 style="margin-top:16px">Response 200</h4>
+            <pre>{
+  <span class="k">"message"</span>: <span class="s">"카테고리가 삭제되었습니다."</span>
+}</pre>
+
+            <h4 style="margin-top:16px">Response 422 (글이 존재하는 경우)</h4>
+            <pre>{
+  <span class="k">"message"</span>: <span class="s">"카테고리를 삭제할 수 없습니다. 해당 카테고리에 글이 5개 있습니다."</span>,
+  <span class="k">"post_count"</span>: <span class="n">5</span>
 }</pre>
         </div>
     </div>
