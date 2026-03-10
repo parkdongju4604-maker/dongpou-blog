@@ -262,6 +262,17 @@
         </div>
 
         <div class="nav-section">
+            <div class="nav-label">보안</div>
+            <a href="{{ route('admin.security.index') }}"
+               class="nav-item {{ request()->routeIs('admin.security.*') ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                보안 관리
+            </a>
+        </div>
+
+        <div class="nav-section">
             <div class="nav-label">API</div>
             <a href="{{ route('admin.api-tokens.index') }}"
                class="nav-item {{ request()->routeIs('admin.api-tokens.*') ? 'active' : '' }}">

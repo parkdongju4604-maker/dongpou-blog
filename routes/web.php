@@ -13,6 +13,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\Admin\SecurityController;
 use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
 
@@ -98,4 +99,11 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
     // 이미지 업로드 (그룹 prefix 'admin.' 이 자동 붙으므로 여기선 upload.image 만)
     Route::post('/upload/image', [ImageUploadController::class, 'store'])->name('upload.image');
     Route::delete('/upload/image', [ImageUploadController::class, 'destroy'])->name('upload.image.destroy');
+
+    // 보안 관리 (차단 규칙 + 접속 로그)
+    Route::get('/security',                          [SecurityController::class, 'index'])->name('security.index');
+    Route::post('/security/rules',                   [SecurityController::class, 'store'])->name('security.rules.store');
+    Route::patch('/security/rules/{rule}/toggle',    [SecurityController::class, 'toggle'])->name('security.rules.toggle');
+    Route::delete('/security/rules/{rule}',          [SecurityController::class, 'destroy'])->name('security.rules.destroy');
+    Route::delete('/security/logs',                  [SecurityController::class, 'clearLogs'])->name('security.logs.clear');
 });

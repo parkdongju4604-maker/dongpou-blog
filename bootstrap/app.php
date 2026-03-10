@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin.auth' => \App\Http\Middleware\AdminAuthMiddleware::class,
             'api.token'  => \App\Http\Middleware\ApiTokenAuth::class,
         ]);
+        // 차단 규칙 체크 + 접속 로그 (공개 라우트)
+        $middleware->appendToGroup('web', \App\Http\Middleware\CheckBlockRules::class);
         // 페이지뷰 트래킹 (웹 전체)
         $middleware->appendToGroup('web', \App\Http\Middleware\TrackPageView::class);
     })
