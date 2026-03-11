@@ -34,7 +34,7 @@
                         <td>
                             <div style="display:flex;gap:6px">
                                 <button type="button" class="btn btn-secondary btn-sm"
-                                        onclick="openEdit({{ $cat->id }}, '{{ addslashes($cat->name) }}', '{{ addslashes($cat->description) }}', {{ $cat->sort_order }})">
+                                        onclick="openEdit({{ $cat->id }}, '{{ addslashes($cat->name) }}', '{{ addslashes($cat->slug) }}', '{{ addslashes($cat->description) }}', {{ $cat->sort_order }})">
                                     수정
                                 </button>
                                 <form action="{{ route('admin.categories.destroy', $cat) }}" method="POST"
@@ -68,7 +68,21 @@
                     @endif
                     <div class="form-group">
                         <label class="form-label">카테고리명 *</label>
-                        <input type="text" name="name" class="form-control" value="{{ old('name') }}" placeholder="예: 개발" required>
+                        <input type="text" name="name" id="add-name" class="form-control"
+                               value="{{ old('name') }}" placeholder="예: 개발" required
+                               oninput="autoSlug(this.value, 'add-slug', addSlugEdited)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="display:flex;justify-content:space-between">
+                            <span>슬러그 <span style="color:#94a3b8;font-weight:400">(URL 경로)</span></span>
+                            <span style="font-size:.72rem;color:#94a3b8">영소문자·숫자·하이픈만</span>
+                        </label>
+                        <input type="text" name="slug" id="add-slug" class="form-control"
+                               value="{{ old('slug') }}" placeholder="비워두면 카테고리명에서 자동 생성"
+                               oninput="addSlugEdited = true" style="font-family:monospace;font-size:.875rem">
+                        @error('slug')
+                            <p style="font-size:.75rem;color:#ef4444;margin-top:4px">{{ $message }}</p>
+                        @enderror
                     </div>
                     <div class="form-group">
                         <label class="form-label">설명 <span style="color:#94a3b8;font-weight:400">(선택)</span></label>
@@ -94,7 +108,17 @@
                     @csrf @method('PUT')
                     <div class="form-group">
                         <label class="form-label">카테고리명 *</label>
-                        <input type="text" name="name" id="edit-name" class="form-control" required>
+                        <input type="text" name="name" id="edit-name" class="form-control" required
+                               oninput="autoSlug(this.value, 'edit-slug', editSlugEdited)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="display:flex;justify-content:space-between">
+                            <span>슬러그</span>
+                            <span style="font-size:.72rem;color:#94a3b8">영소문자·숫자·하이픈만</span>
+                        </label>
+                        <input type="text" name="slug" id="edit-slug" class="form-control"
+                               oninput="editSlugEdited = true"
+                               style="font-family:monospace;font-size:.875rem">
                     </div>
                     <div class="form-group">
                         <label class="form-label">설명</label>
@@ -118,18 +142,35 @@
 @push('scripts')
 <script>
 const baseUrl = '{{ url("admin/categories") }}';
+let addSlugEdited  = false;
+let editSlugEdited = false;
 
-function openEdit(id, name, desc, sort) {
+// 이름 → 슬러그 자동 변환 (직접 편집하지 않은 경우에만)
+function autoSlug(name, targetId, isEdited) {
+    if (isEdited) return;
+    const slug = name.toLowerCase()
+        .replace(/[^\w\s\-가-힣]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9\-]/g, '')   // 한글 등 비ASCII 제거
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+    document.getElementById(targetId).value = slug;
+}
+
+function openEdit(id, name, slug, desc, sort) {
     document.getElementById('edit-form').action = baseUrl + '/' + id;
     document.getElementById('edit-name').value = name;
+    document.getElementById('edit-slug').value = slug;
     document.getElementById('edit-description').value = desc;
     document.getElementById('edit-sort').value = sort;
+    editSlugEdited = true;  // 기존 슬러그는 수동 편집 모드로
     document.getElementById('form-edit').style.display = 'block';
     document.getElementById('form-edit').scrollIntoView({ behavior: 'smooth' });
 }
 
 function closeEdit() {
     document.getElementById('form-edit').style.display = 'none';
+    editSlugEdited = false;
 }
 </script>
 @endpush
