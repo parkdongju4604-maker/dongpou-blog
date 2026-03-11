@@ -483,7 +483,11 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
                 @if($post->tags->isNotEmpty())
                 <div class="post-tags">
                     @foreach($post->tags as $tag)
+                    @if($tag->slug)
                     <a href="{{ route('tags.show', $tag->slug) }}" class="post-tag">#{{ $tag->name }}</a>
+                    @else
+                    <span class="post-tag">#{{ $tag->name }}</span>
+                    @endif
                     @endforeach
                 </div>
                 @endif
