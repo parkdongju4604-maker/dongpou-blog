@@ -467,13 +467,19 @@
             .finally(() => { editorWrap.style.opacity = '1'; });
     }
 
+    // ── 모드 상태 (에디터 초기화 전에 선언) ──
+    const INIT_MODE      = '{{ $initContentType }}';
+    const ORIGINAL_CONTENT = hiddenTA.value;   // 에디터 change 이벤트 전에 원본 보존
+    let   currentMode    = INIT_MODE;           // 'markdown' | 'html'
+
     // ── 에디터 초기화 ──
     const editor = new toastui.Editor({
         el: document.getElementById('toast-editor'),
         height: DEFAULT_H + 'px',
         initialEditType: 'wysiwyg',
         previewStyle: 'tab',
-        initialValue: preprocessContent(hiddenTA.value),
+        // HTML 모드일 때는 에디터를 빈 상태로 초기화 (HTML 내용을 마크다운으로 파싱하지 않음)
+        initialValue: INIT_MODE === 'html' ? '' : preprocessContent(hiddenTA.value),
         language: 'ko-KR',
         toolbarItems: [
             ['heading', 'bold', 'italic', 'strike'],
@@ -489,7 +495,12 @@
             }
         },
         events: {
-            change: function () { hiddenTA.value = editor.getMarkdown(); }
+            // HTML 모드에서는 hiddenTA를 덮어쓰지 않음
+            change: function () {
+                if (currentMode !== 'html') {
+                    hiddenTA.value = editor.getMarkdown();
+                }
+            }
         }
     });
 
@@ -523,7 +534,6 @@
     });
 
     // ── 에디터 모드 스위칭 ──
-    const INIT_MODE     = '{{ $initContentType }}';
     const htmlEditorTA  = document.getElementById('html-editor');
     const modeInput     = document.getElementById('content-type-input');
     const btnMd         = document.getElementById('btn-mode-md');
@@ -534,6 +544,7 @@
 
     function applyModeUI(mode) {
         const isMd = mode === 'markdown';
+        currentMode = mode;
         wrapMd.style.display   = isMd ? '' : 'none';
         wrapHtml.style.display = isMd ? 'none' : '';
         btnMd.style.background   = isMd ? '#6366f1' : '#fff';
@@ -547,27 +558,43 @@
     }
 
     window.switchEditorMode = function(mode) {
-        const current = modeInput.value;
-        if (current === mode) return;
+        if (currentMode === mode) return;
 
         if (mode === 'html') {
-            // 마크다운 → HTML: 에디터의 현재 HTML 가져오기
-            const editorHtml = editor.getHTML();
-            htmlEditorTA.value = editorHtml;
+            // 마크다운 → HTML 전환
+            // htmlEditorTA가 비어 있을 때만 현재 에디터 내용을 HTML로 변환해서 채움
+            if (!htmlEditorTA.value.trim()) {
+                try {
+                    // getHTML()이 없는 버전 대응
+                    const h = typeof editor.getHTML === 'function' ? editor.getHTML() : '';
+                    htmlEditorTA.value = h || '';
+                } catch(e) {
+                    htmlEditorTA.value = '';
+                }
+            }
         } else {
-            // HTML → 마크다운: 되돌리기 불가 경고
+            // HTML → 마크다운 전환: 경고 후 HTML textarea 비우기
             if (htmlEditorTA.value.trim() &&
                 !confirm('마크다운 모드로 전환하면 작성한 HTML 내용이 초기화됩니다.\n계속하시겠습니까?')) {
                 return;
             }
-            // 마크다운 에디터는 현재 상태 유지 (HTML→MD 변환 불가)
+            htmlEditorTA.value = '';
+            hiddenTA.value = editor.getMarkdown();
         }
         applyModeUI(mode);
     };
 
+    // HTML textarea 입력 시 hiddenTA 실시간 동기화 (submit 의존 없음)
+    htmlEditorTA.addEventListener('input', function() {
+        if (currentMode === 'html') {
+            hiddenTA.value = this.value;
+        }
+    });
+
     // 초기 모드 설정
     if (INIT_MODE === 'html') {
-        htmlEditorTA.value = hiddenTA.value;
+        htmlEditorTA.value = ORIGINAL_CONTENT;  // 원본 HTML 내용 (에디터 change에 오염되지 않은)
+        hiddenTA.value     = ORIGINAL_CONTENT;  // hiddenTA도 원본으로 복원
         applyModeUI('html');
     } else {
         applyModeUI('markdown');
@@ -588,20 +615,21 @@
         ta.value = ta.value.substring(0, start) + code + ta.value.substring(end);
         ta.selectionStart = ta.selectionEnd = start + code.length;
         ta.focus();
+        // 실시간 동기화 트리거
+        ta.dispatchEvent(new Event('input'));
     };
 
-    // ── 폼 제출 동기화 ──
+    // ── 폼 제출 동기화 (실시간 동기화 실패 대비 안전장치) ──
     const form = document.querySelector('form');
     if (form) {
         form.addEventListener('submit', function () {
-            if (modeInput.value === 'html') {
-                // HTML 모드: textarea 내용을 hidden input에 복사
+            if (currentMode === 'html') {
                 hiddenTA.value = htmlEditorTA.value;
             } else {
-                // 마크다운 모드: 너비 정보 재삽입 후 저장
                 hiddenTA.value = postprocessMarkdown(editor.getMarkdown());
             }
-            // 자동 저장 초안 삭제
+            // content_type hidden input 최종 확인
+            modeInput.value = currentMode;
             try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
         });
     }
@@ -617,14 +645,13 @@
     let   saveTimer    = null;
 
     function collectDraft() {
-        const mode = modeInput ? modeInput.value : 'markdown';
         return {
             title:        document.getElementById('post-title').value,
             excerpt:      document.querySelector('input[name="excerpt"]')?.value || '',
-            content:      mode === 'html'
+            content:      currentMode === 'html'
                             ? (htmlEditorTA ? htmlEditorTA.value : '')
                             : postprocessMarkdown(editor.getMarkdown()),
-            content_type: mode,
+            content_type: currentMode,
             category:     document.querySelector('select[name="category"]')?.value || '',
             publish_type: document.querySelector('input[name="publish_type"]:checked')?.value || 'draft',
             scheduled_at: document.querySelector('input[name="scheduled_at"]')?.value || '',
