@@ -16,25 +16,25 @@ class SecurityController extends Controller
 
         $rules = BlockRule::orderByDesc('created_at')->get();
 
-        // UA 로그: UA 기준 집계 (상위 100개, 최근 접속순)
+        // UA 로그: UA 기준 집계 (상위 100개, 접속 많은 순)
         $uaLogs = DB::table('access_logs')
             ->select('user_agent',
                 DB::raw('SUM(count) as total'),
                 DB::raw('MAX(last_seen_at) as last_seen'),
                 DB::raw('COUNT(DISTINCT ip) as unique_ips'))
             ->groupBy('user_agent')
-            ->orderByDesc('last_seen')
+            ->orderByDesc('total')
             ->limit(100)
             ->get();
 
-        // IP 로그: IP 기준 집계 (상위 100개, 최근 접속순)
+        // IP 로그: IP 기준 집계 (상위 100개, 접속 많은 순)
         $ipLogs = DB::table('access_logs')
             ->select('ip',
                 DB::raw('SUM(count) as total'),
                 DB::raw('MAX(last_seen_at) as last_seen'),
                 DB::raw('COUNT(DISTINCT user_agent) as unique_uas'))
             ->groupBy('ip')
-            ->orderByDesc('last_seen')
+            ->orderByDesc('total')
             ->limit(100)
             ->get();
 
