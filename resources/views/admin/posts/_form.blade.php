@@ -91,8 +91,8 @@
             <p class="hint">예: 700 입력 시 → 너비 700px로 표시</p>
         </div>
         <div class="img-dialog-actions">
-            <button class="btn-cancel-dialog" id="img-dialog-cancel">취소</button>
-            <button class="btn-insert" id="img-dialog-confirm">삽입</button>
+            <button type="button" class="btn-cancel-dialog" id="img-dialog-cancel">취소</button>
+            <button type="button" class="btn-insert" id="img-dialog-confirm">삽입</button>
         </div>
     </div>
 </div>
