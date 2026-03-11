@@ -50,32 +50,34 @@
 .success-banner { background: #f0fdf4; border: 1px solid #86efac; color: #16a34a; padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; font-size: .875rem; font-weight: 600; }
 </style>
 
+{{-- edit-header: form 바깥에 배치 (중첩 form 방지) --}}
+<div class="edit-header">
+    <h1>
+        <span class="theme-dot" style="background:{{ $theme->preview_color }};"></span>
+        {{ $theme->name }}
+        @if($theme->is_active)
+            <span style="font-size:.65rem;background:#4f46e5;color:#fff;padding:2px 8px;border-radius:99px;">ACTIVE</span>
+        @endif
+    </h1>
+    <div class="edit-actions">
+        <a href="{{ route('admin.themes.index') }}" class="btn-back">← 목록</a>
+        @if(!$theme->is_active)
+            <form method="POST" action="{{ route('admin.themes.activate', $theme) }}" style="display:inline;">
+                @csrf @method('PATCH')
+                <button type="submit" class="btn-activate">🎨 활성화</button>
+            </form>
+        @endif
+        {{-- form="theme-form" 으로 form 외부에서 연결 --}}
+        <button type="submit" class="btn-save" form="theme-form">💾 저장</button>
+    </div>
+</div>
+
+@if(session('success'))
+    <div class="success-banner">✅ {{ session('success') }}</div>
+@endif
+
 <form method="POST" action="{{ route('admin.themes.update', $theme) }}" id="theme-form">
     @csrf @method('PUT')
-
-    <div class="edit-header">
-        <h1>
-            <span class="theme-dot" style="background:{{ $theme->preview_color }};"></span>
-            {{ $theme->name }}
-            @if($theme->is_active)
-                <span style="font-size:.65rem;background:#4f46e5;color:#fff;padding:2px 8px;border-radius:99px;">ACTIVE</span>
-            @endif
-        </h1>
-        <div class="edit-actions">
-            <a href="{{ route('admin.themes.index') }}" class="btn-back">← 목록</a>
-            @if(!$theme->is_active)
-                <form method="POST" action="{{ route('admin.themes.activate', $theme) }}" style="display:inline;" id="activate-form">
-                    @csrf @method('PATCH')
-                    <button type="submit" class="btn-activate">🎨 활성화</button>
-                </form>
-            @endif
-            <button type="submit" class="btn-save" form="theme-form">💾 저장</button>
-        </div>
-    </div>
-
-    @if(session('success'))
-        <div class="success-banner">✅ {{ session('success') }}</div>
-    @endif
 
     {{-- 메타 정보 --}}
     <div class="meta-row">
