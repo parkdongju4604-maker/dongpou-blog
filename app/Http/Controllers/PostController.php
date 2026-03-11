@@ -137,6 +137,7 @@ class PostController extends Controller
         $request->validate([
             'title'        => 'required|max:255',
             'content'      => 'required',
+            'content_type' => 'nullable|in:markdown,html',
             'excerpt'      => 'nullable|max:500',
             'category'     => 'required|max:100',
             'publish_type' => 'required|in:draft,publish,schedule',
@@ -148,6 +149,7 @@ class PostController extends Controller
         ]);
 
         [$published, $publishedAt] = $this->resolvePublishState($request);
+        $contentType = $request->input('content_type', 'markdown');
 
         // 본문 첫 이미지를 썸네일로 자동 추출
         $thumbnail = Post::extractFirstImage($request->content);
@@ -156,6 +158,7 @@ class PostController extends Controller
             'title'        => $request->title,
             'slug'         => Post::makeSlug($request->title),
             'content'      => $request->content,
+            'content_type' => $contentType,
             'excerpt'      => $request->excerpt,
             'category'     => $request->category,
             'published'    => $published,
@@ -183,6 +186,7 @@ class PostController extends Controller
         $request->validate([
             'title'        => 'required|max:255',
             'content'      => 'required',
+            'content_type' => 'nullable|in:markdown,html',
             'excerpt'      => 'nullable|max:500',
             'category'     => 'required|max:100',
             'publish_type' => 'required|in:draft,publish,schedule',
@@ -194,6 +198,7 @@ class PostController extends Controller
         ]);
 
         [$published, $publishedAt] = $this->resolvePublishState($request);
+        $contentType = $request->input('content_type', 'markdown');
 
         // 본문 첫 이미지를 썸네일로 자동 추출
         $thumbnail = Post::extractFirstImage($request->content);
@@ -201,6 +206,7 @@ class PostController extends Controller
         $post->update([
             'title'        => $request->title,
             'content'      => $request->content,
+            'content_type' => $contentType,
             'excerpt'      => $request->excerpt,
             'category'     => $request->category,
             'published'    => $published,

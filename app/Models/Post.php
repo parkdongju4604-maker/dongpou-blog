@@ -15,7 +15,7 @@ class Post extends Model
     use HasFactory;
 
     protected $fillable = [
-        'title', 'slug', 'excerpt', 'content',
+        'title', 'slug', 'excerpt', 'content', 'content_type',
         'thumbnail', 'category', 'published', 'published_at',
         'view_count',
     ];
@@ -86,11 +86,18 @@ class Post extends Model
     }
 
     /**
-     * 마크다운 → HTML 렌더링 (GFM 지원)
-     * Toast UI Editor의 이미지 너비 문법 `![alt](url =NNNx)` 도 처리
+     * 콘텐츠 렌더링
+     * - content_type = 'html'  : 저장된 HTML 그대로 출력
+     * - content_type = 'markdown' (기본) : CommonMark(GFM)로 변환
      */
     public function getRenderedContentAttribute(): string
     {
+        // ── HTML 모드: 그대로 반환 ──────────────────────────────
+        if (($this->content_type ?? 'markdown') === 'html') {
+            return $this->content ?? '';
+        }
+
+        // ── 마크다운 모드 ───────────────────────────────────────
         $content = $this->content;
         $replacements = [];
 

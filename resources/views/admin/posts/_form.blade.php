@@ -129,21 +129,99 @@
         </div>
 
         {{-- 에디터 --}}
+        @php
+            $initContentType = old('content_type', $post->content_type ?? 'markdown');
+        @endphp
+        <input type="hidden" name="content_type" id="content-type-input" value="{{ $initContentType }}">
+
         <div class="form-group">
             <label class="form-label" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
-                <span>내용 *</span>
+                <span style="display:flex;align-items:center;gap:10px">
+                    <span>내용 *</span>
+                    {{-- 모드 토글 --}}
+                    <span id="editor-mode-toggle" style="display:inline-flex;border:1.5px solid #e2e8f0;border-radius:8px;overflow:hidden;font-size:.78rem;font-weight:600">
+                        <button type="button" id="btn-mode-md"
+                                onclick="switchEditorMode('markdown')"
+                                style="padding:4px 14px;border:none;cursor:pointer;transition:background .15s">
+                            📝 마크다운
+                        </button>
+                        <button type="button" id="btn-mode-html"
+                                onclick="switchEditorMode('html')"
+                                style="padding:4px 14px;border:none;cursor:pointer;border-left:1.5px solid #e2e8f0;transition:background .15s">
+                            &lt;/&gt; HTML
+                        </button>
+                    </span>
+                </span>
                 <span style="display:flex;align-items:center;gap:10px">
                     <span id="autosave-status" style="font-size:.72rem;color:#94a3b8;font-weight:400;transition:color .3s"></span>
-                    <span style="font-size:.72rem;color:#94a3b8;font-weight:400">이미지 드래그&드롭 · 클립보드 붙여넣기 지원</span>
+                    <span id="editor-mode-hint" style="font-size:.72rem;color:#94a3b8;font-weight:400">이미지 드래그&드롭 · 클립보드 붙여넣기 지원</span>
                 </span>
             </label>
+
+            {{-- 마크다운/WYSIWYG 에디터 --}}
             <textarea name="content" id="content-hidden" style="display:none">{{ old('content', $post->content ?? '') }}</textarea>
-            <div class="editor-wrap" id="editor-wrap">
-                <div id="toast-editor"></div>
-                <div class="editor-resize-handle" id="editor-resize-handle" title="드래그해서 높이 조절"></div>
+            <div id="editor-md-wrap">
+                <div class="editor-wrap" id="editor-wrap">
+                    <div id="toast-editor"></div>
+                    <div class="editor-resize-handle" id="editor-resize-handle" title="드래그해서 높이 조절"></div>
+                </div>
+                <div style="font-size:.73rem;color:#94a3b8;margin-top:5px;text-align:right">
+                    아래 경계선을 드래그해서 에디터 높이를 조절할 수 있습니다
+                </div>
             </div>
-            <div style="font-size:.73rem;color:#94a3b8;margin-top:5px;text-align:right">
-                아래 경계선을 드래그해서 에디터 높이를 조절할 수 있습니다
+
+            {{-- HTML 에디터 --}}
+            <div id="editor-html-wrap" style="display:none">
+                <textarea id="html-editor"
+                          placeholder="HTML 코드를 입력하세요..."
+                          style="width:100%;min-height:560px;padding:16px;
+                                 font-family:'JetBrains Mono','Fira Code','Cascadia Code',monospace;
+                                 font-size:.875rem;line-height:1.7;
+                                 border:1.5px solid #e2e8f0;border-radius:8px;
+                                 background:#1e1e2e;color:#cdd6f4;
+                                 resize:vertical;outline:none;
+                                 tab-size:2;transition:border .15s"
+                          onfocus="this.style.borderColor='#6366f1'"
+                          onblur="this.style.borderColor='#e2e8f0'"
+                          spellcheck="false"></textarea>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+                    <span style="font-size:.73rem;color:#94a3b8">HTML 태그를 직접 작성하세요. 저장 시 그대로 렌더링됩니다.</span>
+                    <button type="button" onclick="insertHtmlSnippet()" title="이미지 삽입 도우미"
+                            style="font-size:.75rem;padding:4px 12px;background:#f1f5f9;border:1px solid #e2e8f0;
+                                   border-radius:6px;cursor:pointer;color:#475569">
+                        📎 자주 쓰는 태그
+                    </button>
+                </div>
+                {{-- 스니펫 패널 (숨김) --}}
+                <div id="html-snippet-panel" style="display:none;margin-top:8px;padding:12px 16px;
+                     background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+                     grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">
+                    @foreach([
+                        ['label'=>'제목 h2',      'code'=>'<h2>제목</h2>'],
+                        ['label'=>'제목 h3',      'code'=>'<h3>제목</h3>'],
+                        ['label'=>'굵게',         'code'=>'<strong>텍스트</strong>'],
+                        ['label'=>'기울임',       'code'=>'<em>텍스트</em>'],
+                        ['label'=>'단락',         'code'=>'<p>내용</p>'],
+                        ['label'=>'링크',         'code'=>'<a href="URL">텍스트</a>'],
+                        ['label'=>'이미지',       'code'=>'<img src="URL" alt="설명" style="max-width:100%">'],
+                        ['label'=>'순서없는 목록','code'=>"<ul>\n  <li>항목 1</li>\n  <li>항목 2</li>\n</ul>"],
+                        ['label'=>'순서있는 목록','code'=>"<ol>\n  <li>항목 1</li>\n  <li>항목 2</li>\n</ol>"],
+                        ['label'=>'인용구',       'code'=>'<blockquote>인용 내용</blockquote>'],
+                        ['label'=>'코드 블록',    'code'=>"<pre><code>코드 내용</code></pre>"],
+                        ['label'=>'구분선',       'code'=>'<hr>'],
+                    ] as $snip)
+                    <button type="button"
+                            onclick="insertSnippet({{ json_encode($snip['code']) }})"
+                            style="text-align:left;padding:6px 10px;background:#fff;
+                                   border:1px solid #e2e8f0;border-radius:6px;
+                                   font-size:.78rem;cursor:pointer;color:#374151;
+                                   transition:background .1s"
+                            onmouseover="this.style.background='#f1f5f9'"
+                            onmouseout="this.style.background='#fff'">
+                        {{ $snip['label'] }}
+                    </button>
+                    @endforeach
+                </div>
             </div>
         </div>
 
@@ -444,12 +522,85 @@
         localStorage.setItem('editorHeight', parseInt(editor.getHeight()));
     });
 
+    // ── 에디터 모드 스위칭 ──
+    const INIT_MODE     = '{{ $initContentType }}';
+    const htmlEditorTA  = document.getElementById('html-editor');
+    const modeInput     = document.getElementById('content-type-input');
+    const btnMd         = document.getElementById('btn-mode-md');
+    const btnHtml       = document.getElementById('btn-mode-html');
+    const wrapMd        = document.getElementById('editor-md-wrap');
+    const wrapHtml      = document.getElementById('editor-html-wrap');
+    const modeHint      = document.getElementById('editor-mode-hint');
+
+    function applyModeUI(mode) {
+        const isMd = mode === 'markdown';
+        wrapMd.style.display   = isMd ? '' : 'none';
+        wrapHtml.style.display = isMd ? 'none' : '';
+        btnMd.style.background   = isMd ? '#6366f1' : '#fff';
+        btnMd.style.color        = isMd ? '#fff'    : '#374151';
+        btnHtml.style.background = isMd ? '#fff'    : '#6366f1';
+        btnHtml.style.color      = isMd ? '#374151' : '#fff';
+        modeHint.textContent = isMd
+            ? '이미지 드래그&드롭 · 클립보드 붙여넣기 지원'
+            : 'HTML 태그를 직접 작성합니다';
+        modeInput.value = mode;
+    }
+
+    window.switchEditorMode = function(mode) {
+        const current = modeInput.value;
+        if (current === mode) return;
+
+        if (mode === 'html') {
+            // 마크다운 → HTML: 에디터의 현재 HTML 가져오기
+            const editorHtml = editor.getHTML();
+            htmlEditorTA.value = editorHtml;
+        } else {
+            // HTML → 마크다운: 되돌리기 불가 경고
+            if (htmlEditorTA.value.trim() &&
+                !confirm('마크다운 모드로 전환하면 작성한 HTML 내용이 초기화됩니다.\n계속하시겠습니까?')) {
+                return;
+            }
+            // 마크다운 에디터는 현재 상태 유지 (HTML→MD 변환 불가)
+        }
+        applyModeUI(mode);
+    };
+
+    // 초기 모드 설정
+    if (INIT_MODE === 'html') {
+        htmlEditorTA.value = hiddenTA.value;
+        applyModeUI('html');
+    } else {
+        applyModeUI('markdown');
+    }
+
+    // ── HTML 스니펫 패널 토글 ──
+    window.insertHtmlSnippet = function() {
+        const panel = document.getElementById('html-snippet-panel');
+        const isHidden = panel.style.display === 'none' || panel.style.display === '';
+        panel.style.display = isHidden ? 'grid' : 'none';
+    };
+
+    // ── HTML 스니펫 삽입 ──
+    window.insertSnippet = function(code) {
+        const ta = htmlEditorTA;
+        const start = ta.selectionStart;
+        const end   = ta.selectionEnd;
+        ta.value = ta.value.substring(0, start) + code + ta.value.substring(end);
+        ta.selectionStart = ta.selectionEnd = start + code.length;
+        ta.focus();
+    };
+
     // ── 폼 제출 동기화 ──
     const form = document.querySelector('form');
     if (form) {
         form.addEventListener('submit', function () {
-            // 너비 정보 재삽입 후 저장
-            hiddenTA.value = postprocessMarkdown(editor.getMarkdown());
+            if (modeInput.value === 'html') {
+                // HTML 모드: textarea 내용을 hidden input에 복사
+                hiddenTA.value = htmlEditorTA.value;
+            } else {
+                // 마크다운 모드: 너비 정보 재삽입 후 저장
+                hiddenTA.value = postprocessMarkdown(editor.getMarkdown());
+            }
             // 자동 저장 초안 삭제
             try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
         });
@@ -466,10 +617,14 @@
     let   saveTimer    = null;
 
     function collectDraft() {
+        const mode = modeInput ? modeInput.value : 'markdown';
         return {
             title:        document.getElementById('post-title').value,
             excerpt:      document.querySelector('input[name="excerpt"]')?.value || '',
-            content:      postprocessMarkdown(editor.getMarkdown()),
+            content:      mode === 'html'
+                            ? (htmlEditorTA ? htmlEditorTA.value : '')
+                            : postprocessMarkdown(editor.getMarkdown()),
+            content_type: mode,
             category:     document.querySelector('select[name="category"]')?.value || '',
             publish_type: document.querySelector('input[name="publish_type"]:checked')?.value || 'draft',
             scheduled_at: document.querySelector('input[name="scheduled_at"]')?.value || '',
@@ -501,6 +656,7 @@
     document.querySelector('select[name="category"]')?.addEventListener('change', scheduleSave);
     document.querySelectorAll('input[name="publish_type"]').forEach(r => r.addEventListener('change', scheduleSave));
     editor.on('change', scheduleSave);
+    document.getElementById('html-editor')?.addEventListener('input', scheduleSave);
 
     // 주기적 저장 (30초)
     setInterval(saveDraft, 30000);
@@ -525,7 +681,10 @@
                 if (radio) { radio.checked = true; onPublishTypeChange(); }
                 const schedEl = document.querySelector('input[name="scheduled_at"]');
                 if (schedEl && saved.scheduled_at) schedEl.value = saved.scheduled_at;
-                if (saved.content) {
+                if (saved.content_type === 'html') {
+                    if (typeof switchEditorMode === 'function') switchEditorMode('html');
+                    if (htmlEditorTA) htmlEditorTA.value = saved.content || '';
+                } else if (saved.content) {
                     editor.setMarkdown(preprocessContent(saved.content));
                     hiddenTA.value = saved.content;
                 }
