@@ -138,7 +138,8 @@
 .preview-body code { background:#f3f4f6;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:.9em;color:#dc2626 }
 .preview-body pre { background:#1e1e2e;padding:16px;border-radius:8px;overflow-x:auto;color:#cdd6f4;line-height:1.5;font-size:.85em }
 .preview-body pre code { background:none;padding:0;color:inherit }
-.preview-body img { max-width:100%;height:auto;border-radius:8px;margin:1em 0 }
+.preview-body img { max-width:100%;height:auto;border-radius:8px;margin:1em 0;cursor:pointer;position:relative;transition:filter .15s }
+.preview-body img:hover { filter:brightness(0.85);box-shadow:0 0 0 3px rgba(16,185,129,.3) }
 .preview-body ul, .preview-body ol { margin:1em 0;padding-left:2em }
 .preview-body li { margin:.4em 0 }
 .preview-body table { width:100%;border-collapse:collapse;margin:1.5em 0 }
@@ -147,6 +148,30 @@
 .preview-body hr { border:none;border-top:2px solid #e2e8f0;margin:2em 0 }
 .preview-loading { text-align:center;padding:40px;color:#94a3b8 }
 .preview-error { padding:20px;background:#fee2e2;border:1px solid #fecaca;border-radius:8px;color:#991b1b;margin:12px }
+.img-replace-modal { display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:center;justify-content:center }
+.img-replace-modal.open { display:flex }
+.img-replace-container { background:#fff;border-radius:12px;width:min(500px,90vw);box-shadow:0 20px 60px rgba(0,0,0,.3);padding:28px;animation:slideIn .2s ease }
+@keyframes slideIn { from { transform:translateY(-20px);opacity:0 } to { transform:translateY(0);opacity:1 } }
+.img-replace-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:20px }
+.img-replace-header h3 { font-size:1rem;font-weight:700;color:#0f172a;margin:0 }
+.img-replace-close { background:none;border:none;font-size:1.5rem;cursor:pointer;color:#94a3b8;padding:0 }
+.img-replace-tabs { display:flex;gap:10px;margin-bottom:20px;border-bottom:1px solid #e2e8f0 }
+.img-replace-tab { padding:10px 16px;border:none;background:none;cursor:pointer;color:#64748b;font-weight:500;border-bottom:2px solid transparent;transition:all .15s }
+.img-replace-tab.active { border-bottom-color:#10b981;color:#10b981 }
+.img-replace-tab-content { display:none }
+.img-replace-tab-content.active { display:block }
+.img-replace-url-input { width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;outline:none;margin-bottom:12px;transition:border .15s }
+.img-replace-url-input:focus { border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.1) }
+.img-replace-dropzone { border:2px dashed #e2e8f0;border-radius:8px;padding:40px;text-align:center;cursor:pointer;transition:all .15s;background:#f8fafc }
+.img-replace-dropzone.dragover { border-color:#10b981;background:#ecfdf5 }
+.img-replace-dropzone p { color:#64748b;margin:8px 0;font-size:.9rem }
+.img-replace-preview { margin:12px 0;max-width:100%;max-height:200px;border-radius:6px;border:1px solid #e2e8f0 }
+.img-replace-actions { display:flex;gap:10px;justify-content:flex-end;margin-top:20px }
+.img-replace-actions button { padding:10px 20px;border-radius:6px;font-weight:600;border:none;cursor:pointer;font-size:.875rem }
+.btn-replace-confirm { background:#10b981;color:#fff }
+.btn-replace-confirm:hover { background:#059669 }
+.btn-replace-cancel { background:#f1f5f9;color:#475569 }
+.btn-replace-cancel:hover { background:#e2e8f0 }
 </style>
 
 {{-- 미리보기 모달 --}}
@@ -158,6 +183,43 @@
         </div>
         <div class="preview-body" id="preview-content">
             <div class="preview-loading">로드 중...</div>
+        </div>
+    </div>
+</div>
+
+{{-- 이미지 교체 모달 --}}
+<div class="img-replace-modal" id="img-replace-modal">
+    <div class="img-replace-container">
+        <div class="img-replace-header">
+            <h3>🖼 이미지 교체</h3>
+            <button type="button" class="img-replace-close" onclick="closeImgReplace()">✕</button>
+        </div>
+        
+        <div class="img-replace-tabs">
+            <button type="button" class="img-replace-tab active" onclick="switchImgReplaceTab('url')">URL 입력</button>
+            <button type="button" class="img-replace-tab" onclick="switchImgReplaceTab('upload')">파일 업로드</button>
+        </div>
+        
+        <div id="img-replace-url" class="img-replace-tab-content active">
+            <input type="text" id="img-replace-url-input" class="img-replace-url-input" placeholder="이미지 URL을 입력하세요">
+            <p style="font-size:.75rem;color:#94a3b8">예: https://example.com/image.jpg</p>
+        </div>
+        
+        <div id="img-replace-upload" class="img-replace-tab-content">
+            <div class="img-replace-dropzone" id="img-replace-dropzone" ondrop="handleImgReplaceDrop(event)" ondragover="handleImgReplaceDragover(event)" ondragleave="handleImgReplaceDragleave(event)">
+                <div style="font-size:2rem;margin-bottom:10px">📁</div>
+                <p><strong>파일을 여기에 드래그하세요</strong></p>
+                <p style="color:#94a3b8">또는</p>
+                <button type="button" style="padding:8px 16px;background:#10b981;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600" onclick="document.getElementById('img-replace-file-input').click()">파일 선택</button>
+                <input type="file" id="img-replace-file-input" accept="image/*" style="display:none" onchange="handleImgReplaceFileSelect(event)">
+            </div>
+        </div>
+        
+        <img id="img-replace-preview" class="img-replace-preview" style="display:none" alt="미리보기">
+        
+        <div class="img-replace-actions">
+            <button type="button" class="btn-replace-cancel" onclick="closeImgReplace()">취소</button>
+            <button type="button" class="btn-replace-confirm" onclick="confirmImgReplace()">교체</button>
         </div>
     </div>
 </div>
@@ -959,10 +1021,125 @@ document.getElementById('preview-modal')?.addEventListener('click', function(e) 
     if (e.target === this) closePreview();
 });
 
+document.getElementById('img-replace-modal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeImgReplace();
+});
+
 // ESC 키로 닫기
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && document.getElementById('preview-modal').classList.contains('open')) {
         closePreview();
     }
+    if (e.key === 'Escape' && document.getElementById('img-replace-modal').classList.contains('open')) {
+        closeImgReplace();
+    }
 });
+
+// ── 이미지 교체 기능 ──
+let currentImageElement = null;
+
+// 미리보기에서 이미지 클릭 시
+document.addEventListener('click', function(e) {
+    if (e.target.tagName === 'IMG' && e.target.closest('.preview-body')) {
+        currentImageElement = e.target;
+        const src = e.target.src;
+        document.getElementById('img-replace-url-input').value = src;
+        document.getElementById('img-replace-preview').src = src;
+        document.getElementById('img-replace-preview').style.display = 'block';
+        openImgReplace();
+    }
+});
+
+function openImgReplace() {
+    document.getElementById('img-replace-modal').classList.add('open');
+    document.getElementById('img-replace-url-input').focus();
+}
+
+function closeImgReplace() {
+    document.getElementById('img-replace-modal').classList.remove('open');
+    currentImageElement = null;
+    document.getElementById('img-replace-preview').style.display = 'none';
+}
+
+function switchImgReplaceTab(tab) {
+    document.querySelectorAll('.img-replace-tab').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    document.querySelectorAll('.img-replace-tab-content').forEach(content => content.classList.remove('active'));
+    document.getElementById('img-replace-' + tab).classList.add('active');
+}
+
+function handleImgReplaceDragover(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    document.getElementById('img-replace-dropzone').classList.add('dragover');
+}
+
+function handleImgReplaceDragleave(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    document.getElementById('img-replace-dropzone').classList.remove('dragover');
+}
+
+function handleImgReplaceDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    document.getElementById('img-replace-dropzone').classList.remove('dragover');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0 && files[0].type.startsWith('image/')) {
+        uploadImgReplaceFile(files[0]);
+    }
+}
+
+function handleImgReplaceFileSelect(e) {
+    const files = e.target.files;
+    if (files.length > 0) {
+        uploadImgReplaceFile(files[0]);
+    }
+}
+
+function uploadImgReplaceFile(file) {
+    const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const UPLOAD_URL = '{{ route("admin.upload.image") }}';
+    
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('_token', CSRF_TOKEN);
+    
+    fetch(UPLOAD_URL, { method: 'POST', body: formData })
+        .then(res => {
+            if (!res.ok) throw new Error('업로드 실패');
+            return res.json();
+        })
+        .then(data => {
+            document.getElementById('img-replace-url-input').value = data.url;
+            document.getElementById('img-replace-preview').src = data.url;
+            document.getElementById('img-replace-preview').style.display = 'block';
+            switchImgReplaceTab('url');
+        })
+        .catch(err => alert('이미지 업로드 실패: ' + err.message));
+}
+
+function confirmImgReplace() {
+    const newUrl = document.getElementById('img-replace-url-input').value.trim();
+    if (!newUrl) {
+        alert('이미지 URL을 입력하세요');
+        return;
+    }
+    
+    if (currentImageElement) {
+        const oldSrc = currentImageElement.src;
+        currentImageElement.src = newUrl;
+        
+        const currentMode = document.getElementById('content-type-input').value || 'markdown';
+        if (currentMode === 'html') {
+            const htmlEditor = document.getElementById('html-editor');
+            htmlEditor.value = htmlEditor.value.replace(oldSrc, newUrl);
+            htmlEditor.dispatchEvent(new Event('input'));
+        }
+    }
+    
+    closeImgReplace();
+}
 </script>
