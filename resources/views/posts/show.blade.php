@@ -412,35 +412,19 @@ html { scroll-padding-top: 80px; }
 
 /* ── 포스트 제목 영역 스크롤 처리 ── */
 .post-hero {
-    position: sticky;
-    top: 64px;
-    z-index: 30;
-    background: rgba(255, 255, 255, 0.98);
-    border-bottom: 1px solid var(--border, #e5e7eb);
     padding: 32px 0;
     margin: 0 0 32px 0;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    transition: padding .3s ease, background .3s ease;
+    border-bottom: 1px solid var(--border, #e5e7eb);
+    transition: all .2s ease;
+    background: #fff;
 }
 
 .post-hero.scrolled {
-    padding: 16px 0;
-    border-bottom-width: 2px;
+    display: none;
 }
 
 .post-layout {
     position: relative;
-}
-
-@media (max-width: 768px) {
-    .post-hero {
-        top: 60px;
-        padding: 24px 0;
-    }
-    .post-hero.scrolled {
-        padding: 12px 0;
-    }
 }
 
 /* hljs 자체 배경·패딩 제거 → 기존 pre 스타일 유지 */
@@ -982,12 +966,12 @@ document.getElementById('copy-link-btn')?.addEventListener('click', function () 
 </script>
 
 <script>
-// 포스트 제목 스크롤 처리
+// 포스트 제목 스크롤 처리 (스크롤 시 숨기기)
 (function(){
     const postHero = document.querySelector('.post-hero');
     if (!postHero) return;
     
-    const scrollThreshold = 200; // 200px 이상 스크롤하면 축소
+    const scrollThreshold = 150; // 150px 이상 스크롤하면 숨김
     
     window.addEventListener('scroll', function() {
         if (window.scrollY > scrollThreshold) {
