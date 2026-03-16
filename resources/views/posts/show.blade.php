@@ -966,31 +966,32 @@ document.getElementById('copy-link-btn')?.addEventListener('click', function () 
 </script>
 
 <script>
-// 포스트 제목 스크롤 처리 (IntersectionObserver 사용)
+// 포스트 제목 스크롤 처리 (Throttled scroll)
 (function(){
     const postHero = document.querySelector('.post-hero');
     if (!postHero) return;
     
-    // post-hero 맨 위에 센티널 요소 생성
-    const sentinel = document.createElement('div');
-    sentinel.style.cssText = 'height:1px;position:absolute;top:0;left:0;right:0;pointer-events:none;z-index:-1';
-    postHero.parentNode.insertBefore(sentinel, postHero);
+    let ticking = false;
+    const scrollThreshold = 200; // 200px 이상 스크롤
     
-    // 센티널이 뷰포트를 벗어나면 post-hero 숨김
-    const observer = new IntersectionObserver(function(entries) {
-        entries.forEach(entry => {
-            if (!entry.isIntersecting) {
-                postHero.classList.add('scrolled');
-            } else {
-                postHero.classList.remove('scrolled');
-            }
-        });
-    }, { 
-        threshold: 0,
-        rootMargin: '64px 0px 0px 0px'  // 헤더 높이만큼 여유
-    });
+    function updateHeroVisibility() {
+        if (window.scrollY > scrollThreshold) {
+            postHero.classList.add('scrolled');
+        } else {
+            postHero.classList.remove('scrolled');
+        }
+        ticking = false;
+    }
     
-    observer.observe(sentinel);
+    window.addEventListener('scroll', function() {
+        if (!ticking) {
+            requestAnimationFrame(updateHeroVisibility);
+            ticking = true;
+        }
+    }, { passive: true });
+    
+    // 초기 상태 설정
+    updateHeroVisibility();
 })();
 
 // 목차 활성화 (데스크탑 사이드바 + 모바일 TOC 공통)
