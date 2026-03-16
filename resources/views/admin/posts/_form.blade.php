@@ -196,8 +196,8 @@
         </div>
         
         <div class="img-replace-tabs">
-            <button type="button" class="img-replace-tab active" onclick="switchImgReplaceTab('url')">URL 입력</button>
-            <button type="button" class="img-replace-tab" onclick="switchImgReplaceTab('upload')">파일 업로드</button>
+            <button type="button" class="img-replace-tab active" data-tab="url" onclick="switchImgReplaceTab('url')">URL 입력</button>
+            <button type="button" class="img-replace-tab" data-tab="upload" onclick="switchImgReplaceTab('upload')">파일 업로드</button>
         </div>
         
         <div id="img-replace-url" class="img-replace-tab-content active">
@@ -1062,11 +1062,21 @@ function closeImgReplace() {
 }
 
 function switchImgReplaceTab(tab) {
-    document.querySelectorAll('.img-replace-tab').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
+    // 모든 탭 비활성화
+    document.querySelectorAll('.img-replace-tab').forEach(btn => {
+        btn.classList.remove('active');
+    });
     
-    document.querySelectorAll('.img-replace-tab-content').forEach(content => content.classList.remove('active'));
-    document.getElementById('img-replace-' + tab).classList.add('active');
+    // 해당 탭 활성화
+    document.querySelector('.img-replace-tab[data-tab="' + tab + '"]')?.classList.add('active');
+    
+    // 모든 콘텐츠 숨기기
+    document.querySelectorAll('.img-replace-tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // 선택된 콘텐츠 표시
+    document.getElementById('img-replace-' + tab)?.classList.add('active');
 }
 
 function handleImgReplaceDragover(e) {
