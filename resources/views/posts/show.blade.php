@@ -59,19 +59,33 @@
 
     // 목차(TOC) 자동 생성
     preg_match_all('/<h([2-3])[^>]*>(.*?)<\/h[2-3]>/i', $post->rendered_content, $headings);
-    $tocItems = [];
+    $tocItems   = [];
+    $usedIds    = [];
     foreach ($headings[1] as $i => $level) {
-        $text = strip_tags($headings[2][$i]);
-        $id   = 'h-' . Str::slug($text) ?: 'h-' . $i;
+        $text  = strip_tags($headings[2][$i]);
+        $slug  = Str::slug($text);
+        // 한글 등 비ASCII → slug가 빈 문자열 → md5 앞 8자리 폴백
+        $base  = $slug !== '' ? 'h-' . $slug : 'h-' . substr(md5($text), 0, 8);
+        // 같은 id 중복 방지
+        $id    = $base;
+        $n     = 2;
+        while (in_array($id, $usedIds)) { $id = $base . '-' . $n++; }
+        $usedIds[] = $id;
         $tocItems[] = ['level' => (int)$level, 'text' => $text, 'id' => $id];
     }
 
-    // 렌더링된 콘텐츠에 heading id 삽입
+    // 렌더링된 콘텐츠에 heading id 삽입 (TOC와 동일한 로직)
+    $usedIds2 = [];
     $renderedContent = preg_replace_callback(
         '/<h([2-3])([^>]*)>(.*?)<\/h[2-3]>/i',
-        function($m) {
-            $text = strip_tags($m[3]);
-            $id   = 'h-' . \Illuminate\Support\Str::slug($text);
+        function($m) use (&$usedIds2) {
+            $text  = strip_tags($m[3]);
+            $slug  = \Illuminate\Support\Str::slug($text);
+            $base  = $slug !== '' ? 'h-' . $slug : 'h-' . substr(md5($text), 0, 8);
+            $id    = $base;
+            $n     = 2;
+            while (in_array($id, $usedIds2)) { $id = $base . '-' . $n++; }
+            $usedIds2[] = $id;
             return "<h{$m[1]} id=\"{$id}\"{$m[2]}>{$m[3]}</h{$m[1]}>";
         },
         $post->rendered_content
@@ -393,6 +407,9 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
 }
 </style>
 <style>
+/* sticky 헤더(64px) 높이만큼 앵커 스크롤 오프셋 확보 */
+html { scroll-padding-top: 80px; }
+
 /* hljs 자체 배경·패딩 제거 → 기존 pre 스타일 유지 */
 .post-content pre code.hljs { background: transparent !important; padding: 0 !important; }
 

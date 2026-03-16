@@ -561,17 +561,8 @@
         if (currentMode === mode) return;
 
         if (mode === 'html') {
-            // 마크다운 → HTML 전환
-            // htmlEditorTA가 비어 있을 때만 현재 에디터 내용을 HTML로 변환해서 채움
-            if (!htmlEditorTA.value.trim()) {
-                try {
-                    // getHTML()이 없는 버전 대응
-                    const h = typeof editor.getHTML === 'function' ? editor.getHTML() : '';
-                    htmlEditorTA.value = h || '';
-                } catch(e) {
-                    htmlEditorTA.value = '';
-                }
-            }
+            // 마크다운 → HTML 전환: HTML 에디터를 비워둠 (getHTML() 결과의 <p>/<br> 태그 오염 방지)
+            // 사용자가 직접 HTML을 작성하도록 함
         } else {
             // HTML → 마크다운 전환: 경고 후 HTML textarea 비우기
             if (htmlEditorTA.value.trim() &&
@@ -787,6 +778,21 @@
             });
         });
     }
+
+    // 쉼표 포함 텍스트 붙여넣기 → 태그 자동 분리
+    textInput.addEventListener('paste', function (e) {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData('text');
+        const parts  = pasted.split(/[,，、\n]+/).map(s => s.trim()).filter(Boolean);
+        if (parts.length > 1) {
+            parts.forEach(p => addChip(p));
+        } else {
+            // 쉼표 없으면 그냥 현재 위치에 삽입
+            const start = this.selectionStart;
+            this.value  = this.value.slice(0, start) + pasted + this.value.slice(this.selectionEnd);
+            this.selectionStart = this.selectionEnd = start + pasted.length;
+        }
+    });
 
     textInput.addEventListener('keydown', function (e) {
         if ((e.key === 'Enter' || e.key === ',') && this.value.trim()) {

@@ -60,10 +60,21 @@
                 <tr>
                     <td style="color:#cbd5e1;width:40px">{{ $post->id }}</td>
                     <td>
-                        <a href="{{ route('posts.show', $post->slug) }}" target="_blank"
-                           style="font-weight:600;color:#1e293b;max-width:340px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-                            {{ $post->title }}
-                        </a>
+                        @if($post->status === 'published')
+                            {{-- 발행된 글: 실제 포스트 페이지로 이동 --}}
+                            <a href="{{ route('posts.show', $post->slug) }}" target="_blank"
+                               style="font-weight:600;color:#1e293b;max-width:340px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                                {{ $post->title }}
+                            </a>
+                        @else
+                            {{-- 임시저장/예약 글: 편집 페이지로 이동 (posts.show는 published 전용) --}}
+                            <a href="{{ route('admin.posts.edit', $post->id) }}"
+                               style="font-weight:600;color:#6b7280;max-width:340px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                               title="임시저장 글은 편집 페이지로 이동합니다">
+                                {{ $post->title }}
+                                <span style="font-size:.7rem;color:#94a3b8;font-weight:400;margin-left:4px">[편집]</span>
+                            </a>
+                        @endif
                     </td>
                     <td><span class="badge badge-purple">{{ $post->category }}</span></td>
                     <td>
