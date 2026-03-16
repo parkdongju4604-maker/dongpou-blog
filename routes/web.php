@@ -59,6 +59,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+    Route::post('/posts/preview', [PostController::class, 'preview'])->name('posts.preview');
 
     // 카테고리 관리
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');

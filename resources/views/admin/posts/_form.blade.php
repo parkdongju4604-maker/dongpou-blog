@@ -116,6 +116,52 @@
 </div>
 @endif
 
+{{-- 미리보기 모달 스타일 --}}
+<style>
+.preview-modal { display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.4);align-items:center;justify-content:center;animation:fadeIn .15s }
+@keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+.preview-modal.open { display:flex }
+.preview-container { background:#fff;border-radius:12px;width:min(90vw,900px);max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.25) }
+.preview-header { display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #e2e8f0 }
+.preview-header h3 { font-size:1rem;font-weight:700;color:#0f172a;margin:0 }
+.preview-close { background:none;border:none;font-size:1.5rem;cursor:pointer;color:#94a3b8;padding:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center }
+.preview-close:hover { color:#64748b }
+.preview-body { padding:28px 36px;color:#1f2937;line-height:1.7;font-size:.95rem }
+.preview-body h1, .preview-body h2, .preview-body h3, .preview-body h4 { margin:1.6em 0 .6em;font-weight:700 }
+.preview-body h1 { font-size:1.8em;color:#0f172a }
+.preview-body h2 { font-size:1.5em;color:#1f2937;border-bottom:2px solid #e2e8f0;padding-bottom:.4em }
+.preview-body h3 { font-size:1.2em;color:#374151 }
+.preview-body p { margin:.8em 0 }
+.preview-body a { color:#4f46e5;text-decoration:underline }
+.preview-body a:hover { color:#4338ca }
+.preview-body blockquote { margin:1.2em 0;padding:.8em 1.2em;border-left:4px solid #4f46e5;background:#eef2ff;color:#6366f1 }
+.preview-body code { background:#f3f4f6;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:.9em;color:#dc2626 }
+.preview-body pre { background:#1e1e2e;padding:16px;border-radius:8px;overflow-x:auto;color:#cdd6f4;line-height:1.5;font-size:.85em }
+.preview-body pre code { background:none;padding:0;color:inherit }
+.preview-body img { max-width:100%;height:auto;border-radius:8px;margin:1em 0 }
+.preview-body ul, .preview-body ol { margin:1em 0;padding-left:2em }
+.preview-body li { margin:.4em 0 }
+.preview-body table { width:100%;border-collapse:collapse;margin:1.5em 0 }
+.preview-body table th { background:#f3f4f6;padding:10px;border:1px solid #e5e7eb;text-align:left;font-weight:600 }
+.preview-body table td { padding:10px;border:1px solid #e5e7eb }
+.preview-body hr { border:none;border-top:2px solid #e2e8f0;margin:2em 0 }
+.preview-loading { text-align:center;padding:40px;color:#94a3b8 }
+.preview-error { padding:20px;background:#fee2e2;border:1px solid #fecaca;border-radius:8px;color:#991b1b;margin:12px }
+</style>
+
+{{-- 미리보기 모달 --}}
+<div class="preview-modal" id="preview-modal">
+    <div class="preview-container">
+        <div class="preview-header">
+            <h3>📄 미리보기</h3>
+            <button type="button" class="preview-close" onclick="closePreview()">✕</button>
+        </div>
+        <div class="preview-body" id="preview-content">
+            <div class="preview-loading">로드 중...</div>
+        </div>
+    </div>
+</div>
+
 {{-- 폼 레이아웃 --}}
 <div style="display:grid;grid-template-columns:1fr 240px;gap:20px;align-items:start">
     <div>
@@ -155,6 +201,11 @@
                 <span style="display:flex;align-items:center;gap:10px">
                     <span id="autosave-status" style="font-size:.72rem;color:#94a3b8;font-weight:400;transition:color .3s"></span>
                     <span id="editor-mode-hint" style="font-size:.72rem;color:#94a3b8;font-weight:400">이미지 드래그&드롭 · 클립보드 붙여넣기 지원</span>
+                    <button type="button" onclick="openPreview()" title="미리보기"
+                            style="font-size:.72rem;padding:3px 10px;background:#10b981;color:#fff;border:none;
+                                   border-radius:5px;cursor:pointer;font-weight:600;margin-left:auto">
+                        👁 미리보기
+                    </button>
                 </span>
             </label>
 
@@ -184,13 +235,20 @@
                           onfocus="this.style.borderColor='#6366f1'"
                           onblur="this.style.borderColor='#e2e8f0'"
                           spellcheck="false"></textarea>
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;gap:8px">
                     <span style="font-size:.73rem;color:#94a3b8">HTML 태그를 직접 작성하세요. 저장 시 그대로 렌더링됩니다.</span>
-                    <button type="button" onclick="insertHtmlSnippet()" title="이미지 삽입 도우미"
-                            style="font-size:.75rem;padding:4px 12px;background:#f1f5f9;border:1px solid #e2e8f0;
-                                   border-radius:6px;cursor:pointer;color:#475569">
-                        📎 자주 쓰는 태그
-                    </button>
+                    <div style="display:flex;gap:6px">
+                        <button type="button" onclick="openPreview()" title="미리보기"
+                                style="font-size:.75rem;padding:4px 12px;background:#10b981;color:#fff;border:none;
+                                       border-radius:6px;cursor:pointer">
+                            👁 미리보기
+                        </button>
+                        <button type="button" onclick="insertHtmlSnippet()" title="자주 쓰는 태그"
+                                style="font-size:.75rem;padding:4px 12px;background:#f1f5f9;border:1px solid #e2e8f0;
+                                       border-radius:6px;cursor:pointer;color:#475569">
+                            📎 자주 쓰는 태그
+                        </button>
+                    </div>
                 </div>
                 {{-- 스니펫 패널 (숨김) --}}
                 <div id="html-snippet-panel" style="display:none;margin-top:8px;padding:12px 16px;
@@ -848,4 +906,67 @@ function onPublishTypeChange() {
         document.getElementById(labels[type]).style.borderColor = '#6366f1';
     }
 }
+
+// ── 미리보기 ──
+function openPreview() {
+    const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const PREVIEW_URL = '{{ route("admin.posts.preview") }}';
+    const currentMode = document.getElementById('content-type-input').value || 'markdown';
+    
+    let content;
+    if (currentMode === 'html') {
+        content = document.getElementById('html-editor')?.value || '';
+    } else {
+        // 마크다운 모드에서는 editor.getMarkdown()에서 직접 가져옴
+        content = document.getElementById('content-hidden')?.value || '';
+    }
+
+    if (!content.trim()) {
+        alert('내용을 입력한 후 미리보기를 열어주세요.');
+        return;
+    }
+
+    const modal = document.getElementById('preview-modal');
+    const contentEl = document.getElementById('preview-content');
+    contentEl.innerHTML = '<div class="preview-loading">로드 중...</div>';
+    modal.classList.add('open');
+
+    fetch(PREVIEW_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': CSRF_TOKEN,
+        },
+        body: JSON.stringify({
+            content: content,
+            content_type: currentMode,
+        }),
+    })
+    .then(res => {
+        if (!res.ok) throw new Error('미리보기 생성 실패');
+        return res.json();
+    })
+    .then(data => {
+        contentEl.innerHTML = data.html || '<p>미리보기를 표시할 내용이 없습니다.</p>';
+    })
+    .catch(err => {
+        contentEl.innerHTML = `<div class="preview-error">❌ 오류: ${err.message}</div>`;
+    });
+}
+
+function closePreview() {
+    document.getElementById('preview-modal').classList.remove('open');
+}
+
+// 모달 바깥쪽 클릭 시 닫기
+document.getElementById('preview-modal')?.addEventListener('click', function(e) {
+    if (e.target === this) closePreview();
+});
+
+// ESC 키로 닫기
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.getElementById('preview-modal').classList.contains('open')) {
+        closePreview();
+    }
+});
 </script>

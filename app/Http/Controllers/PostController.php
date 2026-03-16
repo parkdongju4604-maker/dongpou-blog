@@ -239,4 +239,31 @@ class PostController extends Controller
         $post->delete();
         return redirect()->route('admin.posts.index')->with('success', '삭제되었습니다.');
     }
+
+    /**
+     * 미리보기 (마크다운/HTML)
+     */
+    public function preview(Request $request)
+    {
+        $request->validate([
+            'content'      => 'required',
+            'content_type' => 'in:markdown,html',
+        ]);
+
+        $content = $request->content;
+        $contentType = $request->input('content_type', 'markdown');
+
+        if ($contentType === 'markdown') {
+            // 마크다운 → HTML
+            $parsedown = new \Parsedown();
+            $html = $parsedown->text($content);
+        } else {
+            // HTML은 그대로
+            $html = $content;
+        }
+
+        return response()->json([
+            'html' => $html,
+        ]);
+    }
 }
