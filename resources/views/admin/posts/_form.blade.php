@@ -201,12 +201,11 @@
                 <span style="display:flex;align-items:center;gap:10px">
                     <span id="autosave-status" style="font-size:.72rem;color:#94a3b8;font-weight:400;transition:color .3s"></span>
                     <span id="editor-mode-hint" style="font-size:.72rem;color:#94a3b8;font-weight:400">이미지 드래그&드롭 · 클립보드 붙여넣기 지원</span>
-                    <button type="button" onclick="openPreview()" title="미리보기"
-                            style="font-size:.72rem;padding:3px 10px;background:#10b981;color:#fff;border:none;
-                                   border-radius:5px;cursor:pointer;font-weight:600;margin-left:auto">
-                        👁 미리보기
-                    </button>
+                    <button type="button" id="btn-preview" onclick="openPreview()" title="미리보기" style="margin-left:auto">👁 미리보기</button>
                 </span>
+                <style>
+                    #btn-preview { font-size:.72rem; padding:3px 10px; background:#10b981; color:#fff; border:none; border-radius:5px; cursor:pointer; font-weight:600; }
+                </style>
             </label>
 
             {{-- 마크다운/WYSIWYG 에디터 --}}
@@ -238,18 +237,15 @@
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;gap:8px">
                     <span style="font-size:.73rem;color:#94a3b8">HTML 태그를 직접 작성하세요. 저장 시 그대로 렌더링됩니다.</span>
                     <div style="display:flex;gap:6px">
-                        <button type="button" onclick="openPreview()" title="미리보기"
-                                style="font-size:.75rem;padding:4px 12px;background:#10b981;color:#fff;border:none;
-                                       border-radius:6px;cursor:pointer">
-                            👁 미리보기
-                        </button>
-                        <button type="button" onclick="insertHtmlSnippet()" title="자주 쓰는 태그"
-                                style="font-size:.75rem;padding:4px 12px;background:#f1f5f9;border:1px solid #e2e8f0;
-                                       border-radius:6px;cursor:pointer;color:#475569">
-                            📎 자주 쓰는 태그
-                        </button>
+                        <button type="button" id="btn-html-preview" onclick="openPreview()" title="미리보기">👁 미리보기</button>
+                        <button type="button" id="btn-snippet-toggle" onclick="insertHtmlSnippet()" title="자주 쓰는 태그">📎 자주 쓰는 태그</button>
                     </div>
                 </div>
+                <style>
+                    #btn-html-preview, #btn-snippet-toggle { font-size:.75rem; padding:4px 12px; border-radius:6px; cursor:pointer; border:none; }
+                    #btn-html-preview { background:#10b981; color:#fff; }
+                    #btn-snippet-toggle { background:#f1f5f9; border:1px solid #e2e8f0; color:#475569; }
+                </style>
                 {{-- 스니펫 패널 (숨김) --}}
                 <div id="html-snippet-panel" style="display:none;margin-top:8px;padding:12px 16px;
                      background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
