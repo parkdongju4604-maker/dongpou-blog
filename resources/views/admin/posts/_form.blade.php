@@ -138,8 +138,11 @@
 .preview-body code { background:#f3f4f6;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:.9em;color:#dc2626 }
 .preview-body pre { background:#1e1e2e;padding:16px;border-radius:8px;overflow-x:auto;color:#cdd6f4;line-height:1.5;font-size:.85em }
 .preview-body pre code { background:none;padding:0;color:inherit }
-.preview-body img { max-width:100%;height:auto;border-radius:8px;margin:1em 0;cursor:pointer;position:relative;transition:filter .15s }
+.preview-body img,
+.preview-body [style*="background-image"] { cursor:pointer;position:relative;transition:filter .15s }
+.preview-body img { max-width:100%;height:auto;border-radius:8px;margin:1em 0 }
 .preview-body img:hover { filter:brightness(0.85);box-shadow:0 0 0 3px rgba(16,185,129,.3) }
+.preview-body [style*="background-image"]:hover { filter:brightness(0.85);box-shadow:inset 0 0 0 3px rgba(16,185,129,.3) }
 .preview-body ul, .preview-body ol { margin:1em 0;padding-left:2em }
 .preview-body li { margin:.4em 0 }
 .preview-body table { width:100%;border-collapse:collapse;margin:1.5em 0 }
@@ -1038,13 +1041,31 @@ document.addEventListener('keydown', function(e) {
 // ── 이미지 교체 기능 ──
 let currentImageElement = null;
 
-// 미리보기에서 이미지 클릭 시
+// 미리보기에서 이미지 클릭 시 (img 태그 + background-image 속성)
 document.addEventListener('click', function(e) {
-    if (e.target.tagName === 'IMG' && e.target.closest('.preview-body')) {
+    if (!e.target.closest('.preview-body')) return;
+    
+    let imageUrl = null;
+    
+    // img 태그인 경우
+    if (e.target.tagName === 'IMG') {
+        imageUrl = e.target.src;
         currentImageElement = e.target;
-        const src = e.target.src;
-        document.getElementById('img-replace-url-input').value = src;
-        document.getElementById('img-replace-preview').src = src;
+    }
+    // background-image 속성을 가진 요소인 경우
+    else if (window.getComputedStyle(e.target).backgroundImage !== 'none') {
+        const bgImage = window.getComputedStyle(e.target).backgroundImage;
+        // url('...') 또는 url("...") 패턴에서 URL 추출
+        const match = bgImage.match(/url\(['"]?([^'"()]+)['"]?\)/);
+        if (match && match[1]) {
+            imageUrl = match[1];
+            currentImageElement = e.target;
+        }
+    }
+    
+    if (imageUrl) {
+        document.getElementById('img-replace-url-input').value = imageUrl;
+        document.getElementById('img-replace-preview').src = imageUrl;
         document.getElementById('img-replace-preview').style.display = 'block';
         openImgReplace();
     }
@@ -1139,14 +1160,36 @@ function confirmImgReplace() {
     }
     
     if (currentImageElement) {
-        const oldSrc = currentImageElement.src;
-        currentImageElement.src = newUrl;
-        
         const currentMode = document.getElementById('content-type-input').value || 'markdown';
-        if (currentMode === 'html') {
-            const htmlEditor = document.getElementById('html-editor');
-            htmlEditor.value = htmlEditor.value.replace(oldSrc, newUrl);
-            htmlEditor.dispatchEvent(new Event('input'));
+        
+        // img 태그 업데이트
+        if (currentImageElement.tagName === 'IMG') {
+            const oldSrc = currentImageElement.src;
+            currentImageElement.src = newUrl;
+            
+            // HTML 콘텐츠도 함께 업데이트
+            if (currentMode === 'html') {
+                const htmlEditor = document.getElementById('html-editor');
+                htmlEditor.value = htmlEditor.value.replace(oldSrc, newUrl);
+                htmlEditor.dispatchEvent(new Event('input'));
+            }
+        }
+        // background-image 스타일 업데이트
+        else {
+            currentImageElement.style.backgroundImage = `url('${newUrl}')`;
+            
+            // HTML 콘텐츠도 함께 업데이트
+            if (currentMode === 'html') {
+                const htmlEditor = document.getElementById('html-editor');
+                const bgImage = window.getComputedStyle(currentImageElement).backgroundImage;
+                const match = bgImage.match(/url\(['"]?([^'"()]+)['"]?\)/);
+                
+                if (match && match[1]) {
+                    // 기존 background-image URL을 새로운 것으로 변경
+                    htmlEditor.value = htmlEditor.value.replace(match[1], newUrl);
+                    htmlEditor.dispatchEvent(new Event('input'));
+                }
+            }
         }
     }
     
