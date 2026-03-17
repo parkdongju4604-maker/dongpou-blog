@@ -414,6 +414,16 @@ html { scroll-padding-top: 80px; }
     padding: 32px 0;
     margin: 0 0 32px 0;
     border-bottom: 1px solid var(--border, #e5e7eb);
+    transition: all .2s ease;
+    background: #fff;
+}
+
+.post-hero.scrolled {
+    display: none;
+}
+
+.post-layout {
+    position: relative;
 }
 
 /* hljs 자체 배경·패딩 제거 → 기존 pre 스타일 유지 */
@@ -955,6 +965,34 @@ document.getElementById('copy-link-btn')?.addEventListener('click', function () 
 </script>
 
 <script>
+// 포스트 제목 스크롤 처리 (Throttled scroll)
+(function(){
+    const postHero = document.querySelector('.post-hero');
+    if (!postHero) return;
+    
+    let ticking = false;
+    const scrollThreshold = 200; // 200px 이상 스크롤
+    
+    function updateHeroVisibility() {
+        if (window.scrollY > scrollThreshold) {
+            postHero.classList.add('scrolled');
+        } else {
+            postHero.classList.remove('scrolled');
+        }
+        ticking = false;
+    }
+    
+    window.addEventListener('scroll', function() {
+        if (!ticking) {
+            requestAnimationFrame(updateHeroVisibility);
+            ticking = true;
+        }
+    }, { passive: true });
+    
+    // 초기 상태 설정
+    updateHeroVisibility();
+})();
+
 // 목차 활성화 (데스크탑 사이드바 + 모바일 TOC 공통)
 (function(){
     // 데스크탑 + 모바일 TOC 링크 모두 선택
