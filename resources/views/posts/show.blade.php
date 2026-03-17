@@ -414,12 +414,7 @@ html { scroll-padding-top: 80px; }
     padding: 32px 0;
     margin: 0 0 32px 0;
     border-bottom: 1px solid var(--border, #e5e7eb);
-    transition: all .2s ease;
     background: #fff;
-}
-
-.post-hero.scrolled {
-    display: none;
 }
 
 .post-layout {
@@ -965,47 +960,6 @@ document.getElementById('copy-link-btn')?.addEventListener('click', function () 
 </script>
 
 <script>
-// 포스트 제목 스크롤 처리 (스크롤 방향 감지)
-(function(){
-    const postHero = document.querySelector('.post-hero');
-    if (!postHero) return;
-    
-    let lastScrollY = 0;
-    let isHidden = false;
-    let ticking = false;
-    const hideThreshold = 200;
-    const showThreshold = 100;
-    
-    function updateHeroVisibility() {
-        const currentScrollY = window.scrollY;
-        const scrollingDown = currentScrollY > lastScrollY;
-        
-        // 아래로 스크롤하고 200px 이상 → 숨김
-        if (scrollingDown && currentScrollY > hideThreshold && !isHidden) {
-            postHero.classList.add('scrolled');
-            isHidden = true;
-        }
-        // 위로 스크롤하고 100px 이하 → 표시
-        else if (!scrollingDown && currentScrollY < showThreshold && isHidden) {
-            postHero.classList.remove('scrolled');
-            isHidden = false;
-        }
-        
-        lastScrollY = currentScrollY;
-        ticking = false;
-    }
-    
-    window.addEventListener('scroll', function() {
-        if (!ticking) {
-            requestAnimationFrame(updateHeroVisibility);
-            ticking = true;
-        }
-    }, { passive: true });
-    
-    // 초기 상태 설정
-    updateHeroVisibility();
-})();
-
 // 목차 활성화 (데스크탑 사이드바 + 모바일 TOC 공통)
 (function(){
     // 데스크탑 + 모바일 TOC 링크 모두 선택
