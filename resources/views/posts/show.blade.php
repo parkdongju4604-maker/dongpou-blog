@@ -965,20 +965,33 @@ document.getElementById('copy-link-btn')?.addEventListener('click', function () 
 </script>
 
 <script>
-// 포스트 제목 스크롤 처리 (Throttled scroll)
+// 포스트 제목 스크롤 처리 (스크롤 방향 감지)
 (function(){
     const postHero = document.querySelector('.post-hero');
     if (!postHero) return;
     
+    let lastScrollY = 0;
+    let isHidden = false;
     let ticking = false;
-    const scrollThreshold = 200; // 200px 이상 스크롤
+    const hideThreshold = 200;
+    const showThreshold = 100;
     
     function updateHeroVisibility() {
-        if (window.scrollY > scrollThreshold) {
+        const currentScrollY = window.scrollY;
+        const scrollingDown = currentScrollY > lastScrollY;
+        
+        // 아래로 스크롤하고 200px 이상 → 숨김
+        if (scrollingDown && currentScrollY > hideThreshold && !isHidden) {
             postHero.classList.add('scrolled');
-        } else {
-            postHero.classList.remove('scrolled');
+            isHidden = true;
         }
+        // 위로 스크롤하고 100px 이하 → 표시
+        else if (!scrollingDown && currentScrollY < showThreshold && isHidden) {
+            postHero.classList.remove('scrolled');
+            isHidden = false;
+        }
+        
+        lastScrollY = currentScrollY;
         ticking = false;
     }
     
