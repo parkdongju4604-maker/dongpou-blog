@@ -455,8 +455,17 @@ Content-Type:  application/json</pre>
                     <tr>
                         <td><code>content</code> <span class="required-badge">필수</span></td>
                         <td>string</td>
-                        <td>본문 (마크다운 형식)</td>
+                        <td>본문 (마크다운 또는 HTML)</td>
                         <td>—</td>
+                    </tr>
+                    <tr>
+                        <td><code>content_type</code> <span class="optional-badge">선택</span></td>
+                        <td>enum</td>
+                        <td>
+                            <code>markdown</code> — 마크다운 형식<br>
+                            <code>html</code> — HTML 태그 형식
+                        </td>
+                        <td><code>markdown</code></td>
                     </tr>
                     <tr>
                         <td><code>category</code> <span class="required-badge">필수</span></td>
@@ -468,6 +477,12 @@ Content-Type:  application/json</pre>
                         <td><code>excerpt</code> <span class="optional-badge">선택</span></td>
                         <td>string</td>
                         <td>목록 카드 요약문 (최대 500자)</td>
+                        <td>null</td>
+                    </tr>
+                    <tr>
+                        <td><code>tags</code> <span class="optional-badge">선택</span></td>
+                        <td>string</td>
+                        <td>태그 목록 (쉼표로 구분. 예: <code>javascript,python,web</code>)</td>
                         <td>null</td>
                     </tr>
                     <tr>
@@ -490,15 +505,30 @@ Content-Type:  application/json</pre>
             </table>
 
             <h4 style="margin-top:16px">Request 예시</h4>
-            <pre><span class="c"># 즉시 발행</span>
+            <pre><span class="c"># 마크다운으로 즉시 발행 + 태그 추가</span>
 curl -X POST {{ $baseUrl }}/posts \
   -H <span class="s">"Authorization: Bearer {token}"</span> \
   -H <span class="s">"Content-Type: application/json"</span> \
   -d '{
     <span class="k">"title"</span>:        <span class="s">"FastAPI로 REST API 만들기"</span>,
     <span class="k">"content"</span>:      <span class="s">"## 소개\n\n마크다운 내용..."</span>,
+    <span class="k">"content_type"</span>: <span class="s">"markdown"</span>,
     <span class="k">"category"</span>:     <span class="s">"개발"</span>,
     <span class="k">"excerpt"</span>:      <span class="s">"FastAPI 입문 튜토리얼"</span>,
+    <span class="k">"tags"</span>:         <span class="s">"api,python,fastapi"</span>,
+    <span class="k">"publish_type"</span>: <span class="s">"publish"</span>
+  }'
+
+<span class="c"># HTML로 발행</span>
+curl -X POST {{ $baseUrl }}/posts \
+  -H <span class="s">"Authorization: Bearer {token}"</span> \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d '{
+    <span class="k">"title"</span>:        <span class="s">"HTML 글 발행"</span>,
+    <span class="k">"content"</span>:      <span class="s">"&lt;h2&gt;소개&lt;/h2&gt;&lt;p&gt;HTML 내용...&lt;/p&gt;"</span>,
+    <span class="k">"content_type"</span>: <span class="s">"html"</span>,
+    <span class="k">"category"</span>:     <span class="s">"개발"</span>,
+    <span class="k">"tags"</span>:         <span class="s">"web,html"</span>,
     <span class="k">"publish_type"</span>: <span class="s">"publish"</span>
   }'
 
@@ -510,6 +540,7 @@ curl -X POST {{ $baseUrl }}/posts \
     <span class="k">"title"</span>:        <span class="s">"예약 발행 테스트"</span>,
     <span class="k">"content"</span>:      <span class="s">"내용..."</span>,
     <span class="k">"category"</span>:     <span class="s">"일상"</span>,
+    <span class="k">"tags"</span>:         <span class="s">"예약,테스트"</span>,
     <span class="k">"publish_type"</span>: <span class="s">"schedule"</span>,
     <span class="k">"scheduled_at"</span>: <span class="s">"2026-03-10T09:00:00"</span>
   }'</pre>
@@ -568,15 +599,29 @@ with open(<span class="s">"/path/to/image.jpg"</span>, <span class="s">"rb"</spa
 image_url = img_resp.json()[<span class="s">"data"</span>][<span class="s">"url"</span>]
 print(<span class="s">"업로드된 이미지 URL:"</span>, image_url)
 
-<span class="c"># 3. 이미지 URL을 본문에 포함해 글 발행</span>
+<span class="c"># 3. 이미지 URL을 본문에 포함해 글 발행 (마크다운 + 태그)</span>
 post_data = {
     <span class="s">"title"</span>:        <span class="s">"Python으로 글 자동 발행"</span>,
     <span class="s">"content"</span>:      f<span class="s">"## 내용\n\n![대표 이미지]({image_url})\n\n파이썬으로 작성한 글입니다."</span>,
+    <span class="s">"content_type"</span>: <span class="s">"markdown"</span>,
     <span class="s">"category"</span>:     <span class="s">"개발"</span>,
     <span class="s">"excerpt"</span>:      <span class="s">"API를 활용한 자동 발행 예시"</span>,
+    <span class="s">"tags"</span>:         <span class="s">"api,python,자동화"</span>,
     <span class="s">"publish_type"</span>: <span class="s">"publish"</span>,
 }
 response = requests.post(f<span class="s">"{BASE_URL}/posts"</span>, json=post_data, headers=HEADERS)
+print(response.status_code, response.json())
+
+<span class="c"># 4. HTML로 글 발행</span>
+html_post = {
+    <span class="s">"title"</span>:        <span class="s">"HTML 글 발행"</span>,
+    <span class="s">"content"</span>:      <span class="s">"&lt;h2&gt;제목&lt;/h2&gt;&lt;p&gt;HTML 형식의 본문입니다.&lt;/p&gt;"</span>,
+    <span class="s">"content_type"</span>: <span class="s">"html"</span>,
+    <span class="s">"category"</span>:     <span class="s">"개발"</span>,
+    <span class="s">"tags"</span>:         <span class="s">"html,web"</span>,
+    <span class="s">"publish_type"</span>: <span class="s">"publish"</span>,
+}
+response = requests.post(f<span class="s">"{BASE_URL}/posts"</span>, json=html_post, headers=HEADERS)
 print(response.status_code, response.json())</pre>
         </div>
     </div>
