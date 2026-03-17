@@ -50,7 +50,6 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* HEADER */
 header {
-    position: sticky; top: 0; z-index: 200;
     background: var(--header-bg);
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(0,0,0,.06);
@@ -226,7 +225,6 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* HEADER */
 header {
-    position: sticky; top: 0; z-index: 200;
     background: var(--header-bg);
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(255,255,255,.06);
@@ -399,7 +397,6 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* HEADER */
 header {
-    position: sticky; top: 0; z-index: 200;
     background: var(--header-bg);
     border-bottom: 1px solid var(--border);
 }
