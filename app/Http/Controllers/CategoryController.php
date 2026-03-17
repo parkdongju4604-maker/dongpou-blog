@@ -62,3 +62,4 @@ class CategoryController extends Controller
         return redirect()->route('admin.categories.index')->with('success', '카테고리가 삭제되었습니다.');
     }
 }
+// Test commit for auto-deploy
