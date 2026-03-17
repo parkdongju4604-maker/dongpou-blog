@@ -58,3 +58,4 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 // npm run build final test - 2026. 03. 17. (화) 18:19:31 KST
+// vite build test - npm install success - 2026. 03. 17. (화) 18:23:44 KST
