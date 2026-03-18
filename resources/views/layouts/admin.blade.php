@@ -303,6 +303,7 @@
                 로그아웃
             </button>
         </form>
+        <div style="padding:8px 10px 0;text-align:center;font-size:.65rem;color:#475569;">v1.0.0</div>
     </div>
 </aside>
 
