@@ -170,8 +170,9 @@
 {{-- ── 사이드바 ── --}}
 <aside class="sidebar">
     <div class="sidebar-logo">
-        <a href="{{ route('admin.dashboard') }}">
+        <a href="{{ route('admin.dashboard') }}" style="display:flex;align-items:center;gap:8px;">
             <div class="brand">관리자 패널</div>
+            <span style="font-size:.7rem;font-weight:600;color:#64748b;">v1.0.0</span>
         </a>
     </div>
 
@@ -303,7 +304,6 @@
                 로그아웃
             </button>
         </form>
-        <div style="padding:8px 10px 0;text-align:center;font-size:.65rem;color:#475569;">v1.0.0</div>
     </div>
 </aside>
 

@@ -7,7 +7,7 @@ alwaysApply: true
 
 ## 버전 위치
 
-`resources/views/layouts/admin.blade.php` 사이드바 하단에 하드코딩된 버전 번호가 있습니다.
+`resources/views/layouts/admin.blade.php` 사이드바 상단 "관리자 패널" 글씨 옆에 하드코딩된 버전 번호가 있습니다.
 
 ## 규칙
 
