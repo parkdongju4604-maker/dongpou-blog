@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', '관리자') — 관리자 패널</title>
+    <title>{{ \App\Models\Setting::get('blog_name', 'DongPou Blog') }} — @yield('title', '관리자')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -172,7 +172,7 @@
     <div class="sidebar-logo">
         <a href="{{ route('admin.dashboard') }}" style="display:flex;align-items:center;gap:8px;">
             <div class="brand">관리자 패널</div>
-            <span style="font-size:.7rem;font-weight:600;color:#64748b;">v1.0.2</span>
+            <span style="font-size:.7rem;font-weight:600;color:#64748b;">v1.0.4</span>
         </a>
     </div>
 
