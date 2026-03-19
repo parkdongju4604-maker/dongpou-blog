@@ -184,10 +184,7 @@
             <h3>📄 미리보기</h3>
             <button type="button" class="preview-close" onclick="closePreview()">✕</button>
         </div>
-        <style id="preview-theme-css"></style>
-        <div class="preview-body post-content" id="preview-content">
-            <div class="preview-loading">로드 중...</div>
-        </div>
+        <iframe id="preview-iframe" style="width:100%;border:none;min-height:400px"></iframe>
     </div>
 </div>
 
@@ -979,7 +976,6 @@ function openPreview() {
     if (currentMode === 'html') {
         content = document.getElementById('html-editor')?.value || '';
     } else {
-        // 마크다운 모드에서는 editor.getMarkdown()에서 직접 가져옴
         content = document.getElementById('content-hidden')?.value || '';
     }
 
@@ -989,8 +985,7 @@ function openPreview() {
     }
 
     const modal = document.getElementById('preview-modal');
-    const contentEl = document.getElementById('preview-content');
-    contentEl.innerHTML = '<div class="preview-loading">로드 중...</div>';
+    const iframe = document.getElementById('preview-iframe');
     modal.classList.add('open');
 
     fetch(PREVIEW_URL, {
@@ -1009,15 +1004,41 @@ function openPreview() {
         return res.json();
     })
     .then(data => {
-        contentEl.innerHTML = data.html || '<p>미리보기를 표시할 내용이 없습니다.</p>';
-        if (data.theme_css) {
-            document.getElementById('preview-theme-css').textContent = data.theme_css;
-        }
+        const html = data.html || '<p>미리보기를 표시할 내용이 없습니다.</p>';
+        const themeCss = data.theme_css || '';
+        const doc = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body { margin:0; padding:28px 36px; font-family:'Noto Sans KR',-apple-system,sans-serif; color:#1f2937; line-height:1.7; font-size:.95rem; }
+${themeCss}
+</style>
+</head>
+<body>
+<div class="post-content">${html}</div>
+<script>
+new ResizeObserver(()=>{
+    parent.postMessage({type:'preview-height',height:document.documentElement.scrollHeight},'*');
+}).observe(document.body);
+<\/script>
+</body>
+</html>`;
+        iframe.srcdoc = doc;
     })
     .catch(err => {
-        contentEl.innerHTML = `<div class="preview-error">❌ 오류: ${err.message}</div>`;
+        iframe.srcdoc = `<body style="font-family:sans-serif;padding:20px;color:#991b1b">❌ 오류: ${err.message}</body>`;
     });
 }
+
+window.addEventListener('message', function(e) {
+    if (e.data?.type === 'preview-height') {
+        const iframe = document.getElementById('preview-iframe');
+        if (iframe) iframe.style.height = Math.min(e.data.height, window.innerHeight * 0.75) + 'px';
+    }
+});
 
 function closePreview() {
     document.getElementById('preview-modal').classList.remove('open');
@@ -1047,7 +1068,7 @@ let currentImageElement = null;
 
 // 미리보기에서 이미지 클릭 시 (img 태그 + background-image 속성)
 document.addEventListener('click', function(e) {
-    if (!e.target.closest('.preview-body')) return;
+    if (!e.target.closest || !e.target.closest('.preview-body')) return;
     
     let imageUrl = null;
     
