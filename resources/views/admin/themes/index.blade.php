@@ -45,6 +45,10 @@
 .btn-delete { background: #fef2f2; color: #ef4444; }
 .btn-delete:hover { background: #fee2e2; }
 
+.btn-sync { background: #0ea5e9; color: #fff; padding: 9px 18px; border-radius: 8px; font-size: .85rem; font-weight: 600; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .15s; text-decoration: none; }
+.btn-sync:hover { background: #0284c7; }
+.btn-sync:disabled { opacity: .6; cursor: not-allowed; }
+
 /* 새 테마 생성 폼 */
 .new-theme-card {
     background: #f8fafc; border-radius: 14px; border: 2px dashed #e2e8f0;
@@ -62,6 +66,13 @@
 
 <div class="themes-header">
     <h1>🎨 CSS 테마 관리</h1>
+    <form method="POST" action="{{ route('admin.themes.sync') }}" id="sync-form">
+        @csrf
+        <button type="submit" class="btn-sync" id="sync-btn">
+            <span id="sync-icon">🔄</span>
+            <span id="sync-text">외부 테마 동기화</span>
+        </button>
+    </form>
 </div>
 
 @if(session('success'))
@@ -72,6 +83,11 @@
 @if(session('error'))
     <div style="background:#fef2f2;border:1px solid #fca5a5;color:#ef4444;padding:12px 16px;border-radius:8px;margin-bottom:20px;font-size:.875rem;font-weight:600;">
         ⚠️ {{ session('error') }}
+    </div>
+@endif
+@if(session('info'))
+    <div style="background:#f0f9ff;border:1px solid #7dd3fc;color:#0369a1;padding:12px 16px;border-radius:8px;margin-bottom:20px;font-size:.875rem;font-weight:600;">
+        ℹ️ {{ session('info') }}
     </div>
 @endif
 
@@ -148,4 +164,14 @@
         </form>
     </div>
 </div>
+<script>
+document.getElementById('sync-form').addEventListener('submit', function () {
+    const btn  = document.getElementById('sync-btn');
+    const icon = document.getElementById('sync-icon');
+    const text = document.getElementById('sync-text');
+    btn.disabled = true;
+    icon.textContent = '⏳';
+    text.textContent = '동기화 중...';
+});
+</script>
 @endsection

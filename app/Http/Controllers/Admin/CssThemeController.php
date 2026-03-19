@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CssTheme;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class CssThemeController extends Controller
 {
@@ -76,5 +77,52 @@ class CssThemeController extends Controller
         $theme->delete();
         CssTheme::clearCache();
         return back()->with('success', '테마가 삭제되었습니다.');
+    }
+
+    public function sync()
+    {
+        try {
+            $response = Http::timeout(15)->get('http://mango-ai.co.kr/api/css-files');
+
+            if (! $response->successful()) {
+                return back()->with('error', '외부 API 호출에 실패했습니다. (HTTP ' . $response->status() . ')');
+            }
+
+            $json = $response->json();
+
+            if (! isset($json['result']) || $json['result'] !== 1 || ! isset($json['data'])) {
+                return back()->with('error', 'API 응답 형식이 올바르지 않습니다.');
+            }
+
+            $existingNames = CssTheme::pluck('name')->map(fn($n) => mb_strtolower(trim($n)))->toArray();
+
+            $added = 0;
+            foreach ($json['data'] as $item) {
+                $itemName = trim($item['name'] ?? '');
+                if ($itemName === '' || in_array(mb_strtolower($itemName), $existingNames, true)) {
+                    continue;
+                }
+
+                CssTheme::create([
+                    'name'          => $itemName,
+                    'description'   => $itemName . ' 테마',
+                    'preview_color' => '#4f46e5',
+                    'css'           => $item['content'] ?? '',
+                    'is_active'     => false,
+                ]);
+
+                $existingNames[] = mb_strtolower($itemName);
+                $added++;
+            }
+
+            if ($added === 0) {
+                return back()->with('success', '새로 추가할 테마가 없습니다. 이미 모두 동기화되어 있습니다.');
+            }
+
+            return back()->with('success', "총 {$added}개의 테마가 새로 추가되었습니다.");
+
+        } catch (\Exception $e) {
+            return back()->with('error', '동기화 중 오류가 발생했습니다: ' . $e->getMessage());
+        }
     }
 }

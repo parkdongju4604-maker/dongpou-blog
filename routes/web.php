@@ -73,6 +73,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
     // CSS 테마 관리
     Route::get('/themes', [CssThemeController::class, 'index'])->name('themes.index');
     Route::post('/themes', [CssThemeController::class, 'store'])->name('themes.store');
+    Route::post('/themes/sync', [CssThemeController::class, 'sync'])->name('themes.sync');
     Route::get('/themes/{theme}/edit', [CssThemeController::class, 'edit'])->name('themes.edit');
     Route::put('/themes/{theme}', [CssThemeController::class, 'update'])->name('themes.update');
     Route::patch('/themes/{theme}/activate', [CssThemeController::class, 'activate'])->name('themes.activate');
