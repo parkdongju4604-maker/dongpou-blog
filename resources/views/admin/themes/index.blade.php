@@ -66,6 +66,7 @@
 
 <div class="themes-header">
     <h1>🎨 CSS 테마 관리</h1>
+    @if(\Illuminate\Support\Facades\Route::has('admin.themes.sync'))
     <form method="POST" action="{{ route('admin.themes.sync') }}" id="sync-form">
         @csrf
         <button type="submit" class="btn-sync" id="sync-btn">
@@ -73,6 +74,7 @@
             <span id="sync-text">외부 테마 동기화</span>
         </button>
     </form>
+    @endif
 </div>
 
 @if(session('success'))
