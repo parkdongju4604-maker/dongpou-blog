@@ -184,7 +184,8 @@
             <h3>📄 미리보기</h3>
             <button type="button" class="preview-close" onclick="closePreview()">✕</button>
         </div>
-        <div class="preview-body" id="preview-content">
+        <style id="preview-theme-css"></style>
+        <div class="preview-body post-content" id="preview-content">
             <div class="preview-loading">로드 중...</div>
         </div>
     </div>
@@ -1009,6 +1010,9 @@ function openPreview() {
     })
     .then(data => {
         contentEl.innerHTML = data.html || '<p>미리보기를 표시할 내용이 없습니다.</p>';
+        if (data.theme_css) {
+            document.getElementById('preview-theme-css').textContent = data.theme_css;
+        }
     })
     .catch(err => {
         contentEl.innerHTML = `<div class="preview-error">❌ 오류: ${err.message}</div>`;

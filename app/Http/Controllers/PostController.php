@@ -254,16 +254,17 @@ class PostController extends Controller
         $contentType = $request->input('content_type', 'markdown');
 
         if ($contentType === 'markdown') {
-            // 마크다운 → HTML
             $parsedown = new \Parsedown();
             $html = $parsedown->text($content);
         } else {
-            // HTML은 그대로
             $html = $content;
         }
 
+        $themeCss = \App\Models\CssTheme::getActive()?->css ?? '';
+
         return response()->json([
-            'html' => $html,
+            'html'      => $html,
+            'theme_css' => $themeCss,
         ]);
     }
 }
