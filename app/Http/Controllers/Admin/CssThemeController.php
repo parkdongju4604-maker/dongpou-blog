@@ -12,6 +12,13 @@ class CssThemeController extends Controller
 {
     public function index()
     {
+        // 라우트 캐시가 오래돼 sync 라우트가 없으면 자동 초기화 후 새로고침
+        if (! app('router')->has('admin.themes.sync')) {
+            Artisan::call('route:clear');
+            Artisan::call('view:clear');
+            return redirect()->back();
+        }
+
         $themes = CssTheme::orderBy('id')->get();
         return view('admin.themes.index', compact('themes'));
     }
