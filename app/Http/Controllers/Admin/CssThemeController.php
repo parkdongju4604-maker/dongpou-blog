@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CssTheme;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
 
 class CssThemeController extends Controller
@@ -82,6 +83,12 @@ class CssThemeController extends Controller
     public function sync()
     {
         try {
+            // 캐시 초기화 (라우트 캐시 등 배포 후 불일치 방지)
+            Artisan::call('route:clear');
+            Artisan::call('view:clear');
+            Artisan::call('cache:clear');
+            Artisan::call('config:clear');
+
             $response = Http::timeout(15)->get('http://mango-ai.co.kr/api/css-files');
 
             if (! $response->successful()) {
@@ -116,10 +123,10 @@ class CssThemeController extends Controller
             }
 
             if ($added === 0) {
-                return back()->with('success', '새로 추가할 테마가 없습니다. 이미 모두 동기화되어 있습니다.');
+                return back()->with('success', '새로 추가할 테마가 없습니다. 서버 캐시는 초기화되었습니다.');
             }
 
-            return back()->with('success', "총 {$added}개의 테마가 새로 추가되었습니다.");
+            return back()->with('success', "총 {$added}개의 테마가 추가되었습니다. 서버 캐시도 초기화되었습니다.");
 
         } catch (\Exception $e) {
             return back()->with('error', '동기화 중 오류가 발생했습니다: ' . $e->getMessage());
