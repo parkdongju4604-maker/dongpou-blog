@@ -40,6 +40,7 @@ Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 // ── 피드
 Route::get('/feed/rss',  [FeedController::class, 'rss'])->name('feed.rss');
 Route::get('/feed/atom', [FeedController::class, 'atom'])->name('feed.atom');
+Route::view('/privacy-policy', 'privacy-policy')->name('privacy.policy');
 
 // ── 관리자 로그인/로그아웃 (인증 불필요)
 Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');

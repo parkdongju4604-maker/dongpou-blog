@@ -193,6 +193,10 @@
         <a href="{{ route('feed.atom') }}"
            style="color:inherit;opacity:.7;text-decoration:none;font-size:.8rem"
            title="Atom 피드 구독">Atom</a>
+        &nbsp;·&nbsp;
+        <a href="{{ route('privacy.policy') }}"
+           style="color:inherit;opacity:.7;text-decoration:none;font-size:.8rem"
+           title="개인정보처리방침">개인정보처리방침</a>
     </p>
 </footer>
 
