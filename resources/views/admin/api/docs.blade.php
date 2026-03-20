@@ -426,6 +426,61 @@ curl -X POST {{ $baseUrl }}/images \
         </div>
     </div>
 
+    {{-- ── GET /posts ── --}}
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/posts?status=publish&amp;per_page=1</span>
+            <span class="endpoint-desc">워드프레스 유사 포스트 목록 조회 (최신순)</span>
+        </div>
+        <div class="endpoint-body">
+            <h4>Query Parameters</h4>
+            <table class="param-table">
+                <thead>
+                    <tr><th>파라미터</th><th>설명</th><th>기본값</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>status</code></td><td><code>publish</code> | <code>draft</code> | <code>future</code> | <code>any</code></td><td><code>publish</code></td></tr>
+                    <tr><td><code>per_page</code></td><td>페이지당 개수 (1~50)</td><td><code>10</code></td></tr>
+                    <tr><td><code>page</code></td><td>페이지 번호 (1부터 시작)</td><td><code>1</code></td></tr>
+                    <tr><td><code>orderby</code></td><td><code>date</code> | <code>modified</code> | <code>id</code></td><td><code>date</code></td></tr>
+                    <tr><td><code>order</code></td><td><code>desc</code> | <code>asc</code></td><td><code>desc</code></td></tr>
+                </tbody>
+            </table>
+
+            <p style="font-size:.78rem;color:#64748b;margin-top:8px">
+                💡 응답 헤더에 <code>X-WP-Total</code>, <code>X-WP-TotalPages</code>가 포함됩니다.
+            </p>
+
+            <h4 style="margin-top:16px">Request 예시</h4>
+            <pre><span class="c"># 발행글 중 최신 1개</span>
+curl -X GET "{{ $baseUrl }}/posts?status=publish&per_page=1" \
+  -H <span class="s">"Authorization: Bearer {token}"</span>
+
+<span class="c"># 2페이지, 페이지당 20개</span>
+curl -X GET "{{ $baseUrl }}/posts?status=publish&per_page=20&page=2&orderby=date&order=desc" \
+  -H <span class="s">"Authorization: Bearer {token}"</span></pre>
+
+            <h4 style="margin-top:16px">Response 200 (일부)</h4>
+            <pre>[
+  {
+    <span class="k">"id"</span>: <span class="n">498</span>,
+    <span class="k">"date"</span>: <span class="s">"2026-03-18T11:18:21"</span>,
+    <span class="k">"date_gmt"</span>: <span class="s">"2026-03-18T02:18:21"</span>,
+    <span class="k">"slug"</span>: <span class="s">"%ED%8C%94-%EC%98%AC%EB%A6%B4%EB%95%8C-..."</span>,
+    <span class="k">"status"</span>: <span class="s">"publish"</span>,
+    <span class="k">"type"</span>: <span class="s">"post"</span>,
+    <span class="k">"link"</span>: <span class="s">"{{ url('/posts') }}/..."</span>,
+    <span class="k">"title"</span>: { <span class="k">"rendered"</span>: <span class="s">"글 제목"</span> },
+    <span class="k">"content"</span>: { <span class="k">"rendered"</span>: <span class="s">"&lt;p&gt;...&lt;/p&gt;"</span>, <span class="k">"protected"</span>: <span class="n">false</span> },
+    <span class="k">"excerpt"</span>: { <span class="k">"rendered"</span>: <span class="s">"&lt;p&gt;요약...&lt;/p&gt;"</span>, <span class="k">"protected"</span>: <span class="n">false</span> },
+    <span class="k">"categories"</span>: [<span class="n">3</span>],
+    <span class="k">"tags"</span>: [<span class="n">41</span>, <span class="n">42</span>]
+  }
+]</pre>
+        </div>
+    </div>
+
     {{-- ── POST /posts ── --}}
     <div class="endpoint-card">
         <div class="endpoint-header">

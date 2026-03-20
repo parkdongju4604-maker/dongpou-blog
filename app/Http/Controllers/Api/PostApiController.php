@@ -3,12 +3,130 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Post;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class PostApiController extends Controller
 {
+    /**
+     * GET /api/posts
+     *
+     * Query:
+     * - status: publish|draft|future|any (default: publish)
+     * - per_page: 1~50 (default: 10)
+     * - page: 1..n (default: 1)
+     * - orderby: date|modified|id (default: date)
+     * - order: asc|desc (default: desc)
+     */
+    public function index(Request $request)
+    {
+        $validated = $request->validate([
+            'status'   => 'nullable|in:publish,draft,future,any',
+            'per_page' => 'nullable|integer|min:1|max:50',
+            'page'     => 'nullable|integer|min:1',
+            'orderby'  => 'nullable|in:date,modified,id',
+            'order'    => 'nullable|in:asc,desc',
+        ]);
+
+        $status  = $validated['status'] ?? 'publish';
+        $perPage = (int) ($validated['per_page'] ?? 10);
+        $page    = (int) ($validated['page'] ?? 1);
+        $orderby = $validated['orderby'] ?? 'date';
+        $order   = $validated['order'] ?? 'desc';
+
+        $query = Post::query()->with(['tags:id,slug']);
+
+        match ($status) {
+            'publish' => $query->where('published', true)->where('published_at', '<=', now()),
+            'draft'   => $query->where('published', false),
+            'future'  => $query->where('published', true)->where('published_at', '>', now()),
+            default   => $query, // any
+        };
+
+        match ($orderby) {
+            'modified' => $query->orderBy('updated_at', $order),
+            'id'       => $query->orderBy('id', $order),
+            default    => $query->orderByRaw("COALESCE(published_at, created_at) {$order}"),
+        };
+
+        $paginator = $query->paginate($perPage, ['*'], 'page', $page);
+        $posts = $paginator->getCollection();
+
+        $categoryByName = Category::whereIn('name', $posts->pluck('category')->filter()->unique()->values())
+            ->get(['id', 'name', 'slug'])
+            ->keyBy('name');
+
+        $payload = $posts->map(function (Post $post) use ($categoryByName) {
+            $wpStatus = $this->toWpStatus($post);
+            $date = $post->published_at ?? $post->created_at;
+            $excerptText = $post->excerpt ?: Str::limit(strip_tags($post->rendered_content), 180);
+
+            $category = $categoryByName->get($post->category);
+            $categoryIds = $category ? [$category->id] : [];
+            $categoryClass = $category ? ['category-' . $category->slug] : [];
+
+            $tagIds = $post->tags->pluck('id')->values()->all();
+            $tagClasses = $post->tags->pluck('slug')->map(fn($slug) => 'tag-' . $slug)->values()->all();
+
+            return [
+                'id'            => $post->id,
+                'date'          => $date?->format('Y-m-d\TH:i:s'),
+                'date_gmt'      => $date?->copy()->setTimezone('UTC')->format('Y-m-d\TH:i:s'),
+                'guid'          => ['rendered' => url('/?p=' . $post->id)],
+                'modified'      => $post->updated_at?->format('Y-m-d\TH:i:s'),
+                'modified_gmt'  => $post->updated_at?->copy()->setTimezone('UTC')->format('Y-m-d\TH:i:s'),
+                'slug'          => rawurlencode($post->slug),
+                'status'        => $wpStatus,
+                'type'          => 'post',
+                'link'          => url('/posts/' . rawurlencode($post->slug)),
+                'title'         => ['rendered' => e($post->title)],
+                'content'       => [
+                    'rendered'  => $post->rendered_content,
+                    'protected' => false,
+                ],
+                'excerpt'       => [
+                    'rendered'  => '<p>' . e($excerptText) . '</p>',
+                    'protected' => false,
+                ],
+                'author'        => 1,
+                'featured_media'=> 0,
+                'comment_status'=> 'open',
+                'ping_status'   => 'open',
+                'sticky'        => false,
+                'template'      => '',
+                'format'        => 'standard',
+                'meta'          => ['footnotes' => ''],
+                'categories'    => $categoryIds,
+                'tags'          => $tagIds,
+                'class_list'    => array_values(array_merge([
+                    'post-' . $post->id,
+                    'post',
+                    'type-post',
+                    'status-' . $wpStatus,
+                    'format-standard',
+                    'hentry',
+                ], $categoryClass, $tagClasses)),
+                '_links'        => [
+                    'self'       => [['href' => url('/api/posts/' . $post->id), 'targetHints' => ['allow' => ['GET']]]],
+                    'collection' => [['href' => url('/api/posts')]],
+                    'about'      => [['href' => url('/api/types/post')]],
+                ],
+            ];
+        })->values();
+
+        return response()->json(
+            $payload,
+            200,
+            [
+                'X-WP-Total'      => (string) $paginator->total(),
+                'X-WP-TotalPages' => (string) $paginator->lastPage(),
+            ]
+        );
+    }
+
     /**
      * POST /api/posts
      *
@@ -94,5 +212,18 @@ class PostApiController extends Controller
             ],
             'message' => '글이 성공적으로 등록되었습니다.',
         ], 201);
+    }
+
+    private function toWpStatus(Post $post): string
+    {
+        if (!$post->published) {
+            return 'draft';
+        }
+
+        if ($post->published_at && $post->published_at->isFuture()) {
+            return 'future';
+        }
+
+        return 'publish';
     }
 }
