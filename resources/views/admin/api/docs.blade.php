@@ -66,10 +66,13 @@
     <div class="auth-info">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
             <span style="font-size:1rem">🔐</span>
-            <strong style="font-size:.9rem;color:#1e40af">인증 방식: Bearer Token</strong>
+            <strong style="font-size:.9rem;color:#1e40af">인증 방식: Bearer Token (일부 API)</strong>
         </div>
         <p style="font-size:.84rem;color:#1e40af;margin-bottom:10px">
-            모든 API 요청에 <code style="background:#dbeafe;padding:1px 6px;border-radius:4px">Authorization</code> 헤더를 포함해야 합니다.
+            기본적으로 관리/쓰기 API는
+            <code style="background:#dbeafe;padding:1px 6px;border-radius:4px">Authorization</code> 헤더가 필요합니다.
+            <br>
+            <strong>GET /api/posts</strong>는 공개 조회 API이며 토큰 없이도 호출 가능합니다.
         </p>
         <pre style="background:#1e3a5f;color:#93c5fd;padding:12px 16px;border-radius:8px;font-size:.8rem;margin:0">Authorization: Bearer dp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</pre>
         <p style="font-size:.78rem;color:#3b82f6;margin-top:10px">
@@ -440,7 +443,7 @@ curl -X POST {{ $baseUrl }}/images \
                     <tr><th>파라미터</th><th>설명</th><th>기본값</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td><code>status</code></td><td><code>publish</code> | <code>draft</code> | <code>future</code> | <code>any</code></td><td><code>publish</code></td></tr>
+                    <tr><td><code>status</code></td><td><code>publish</code> | <code>draft</code> | <code>future</code> | <code>any</code> (비인증 요청은 <code>publish</code>만 허용)</td><td><code>publish</code></td></tr>
                     <tr><td><code>per_page</code></td><td>페이지당 개수 (1~50)</td><td><code>10</code></td></tr>
                     <tr><td><code>page</code></td><td>페이지 번호 (1부터 시작)</td><td><code>1</code></td></tr>
                     <tr><td><code>orderby</code></td><td><code>date</code> | <code>modified</code> | <code>id</code></td><td><code>date</code></td></tr>
@@ -449,20 +452,22 @@ curl -X POST {{ $baseUrl }}/images \
             </table>
 
             <p style="font-size:.78rem;color:#64748b;margin-top:8px">
-                💡 응답 헤더에 <code>X-WP-Total</code>, <code>X-WP-TotalPages</code>가 포함됩니다.
+                💡 공개 조회 엔드포인트이며 분당 60회 레이트리밋이 적용됩니다.
+                응답 헤더에 <code>X-WP-Total</code>, <code>X-WP-TotalPages</code>가 포함됩니다.
             </p>
 
             <h4 style="margin-top:16px">Request 예시</h4>
             <pre><span class="c"># 기본 전체 조회 (기본값: status=publish, per_page=10, page=1, 최신순)</span>
-curl -X GET "{{ $baseUrl }}/posts" \
-  -H <span class="s">"Authorization: Bearer {token}"</span>
+curl -X GET "{{ $baseUrl }}/posts"
 
 <span class="c"># 발행글 중 최신 1개</span>
-curl -X GET "{{ $baseUrl }}/posts?status=publish&per_page=1" \
-  -H <span class="s">"Authorization: Bearer {token}"</span>
+curl -X GET "{{ $baseUrl }}/posts?status=publish&per_page=1"
 
 <span class="c"># 2페이지, 페이지당 20개</span>
-curl -X GET "{{ $baseUrl }}/posts?status=publish&per_page=20&page=2&orderby=date&order=desc" \
+curl -X GET "{{ $baseUrl }}/posts?status=publish&per_page=20&page=2&orderby=date&order=desc"
+
+<span class="c"># 토큰 포함 시 draft/future/any 상태 조회 가능</span>
+curl -X GET "{{ $baseUrl }}/posts?status=any&per_page=20" \
   -H <span class="s">"Authorization: Bearer {token}"</span></pre>
 
             <h4 style="margin-top:16px">Response 200 (일부)</h4>

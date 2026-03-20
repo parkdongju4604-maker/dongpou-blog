@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ApiToken;
 use App\Models\Category;
 use App\Models\Post;
 use Carbon\Carbon;
@@ -31,11 +32,13 @@ class PostApiController extends Controller
             'order'    => 'nullable|in:asc,desc',
         ]);
 
-        $status  = $validated['status'] ?? 'publish';
+        $requestedStatus = $validated['status'] ?? 'publish';
         $perPage = (int) ($validated['per_page'] ?? 10);
         $page    = (int) ($validated['page'] ?? 1);
         $orderby = $validated['orderby'] ?? 'date';
         $order   = $validated['order'] ?? 'desc';
+        $isAuthenticated = $this->hasValidBearerToken($request);
+        $status = $isAuthenticated ? $requestedStatus : 'publish';
 
         $query = Post::query()->with(['tags:id,slug']);
 
@@ -225,5 +228,15 @@ class PostApiController extends Controller
         }
 
         return 'publish';
+    }
+
+    private function hasValidBearerToken(Request $request): bool
+    {
+        $bearer = $request->bearerToken();
+        if (!$bearer) {
+            return false;
+        }
+
+        return ApiToken::findByToken($bearer) !== null;
     }
 }
