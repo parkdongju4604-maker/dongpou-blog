@@ -430,8 +430,8 @@ curl -X POST {{ $baseUrl }}/images \
     <div class="endpoint-card">
         <div class="endpoint-header">
             <span class="method-badge method-get">GET</span>
-            <span class="endpoint-path">/api/posts?status=publish&amp;per_page=1</span>
-            <span class="endpoint-desc">워드프레스 유사 포스트 목록 조회 (최신순)</span>
+            <span class="endpoint-path">/api/posts</span>
+            <span class="endpoint-desc">포스트 목록 조회 (쿼리 파라미터로 필터/정렬/페이지네이션)</span>
         </div>
         <div class="endpoint-body">
             <h4>Query Parameters</h4>
@@ -453,7 +453,11 @@ curl -X POST {{ $baseUrl }}/images \
             </p>
 
             <h4 style="margin-top:16px">Request 예시</h4>
-            <pre><span class="c"># 발행글 중 최신 1개</span>
+            <pre><span class="c"># 기본 전체 조회 (기본값: status=publish, per_page=10, page=1, 최신순)</span>
+curl -X GET "{{ $baseUrl }}/posts" \
+  -H <span class="s">"Authorization: Bearer {token}"</span>
+
+<span class="c"># 발행글 중 최신 1개</span>
 curl -X GET "{{ $baseUrl }}/posts?status=publish&per_page=1" \
   -H <span class="s">"Authorization: Bearer {token}"</span>
 
