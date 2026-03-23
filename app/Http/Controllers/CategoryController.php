@@ -12,7 +12,10 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::ordered()->get();
+        $categories = Category::query()
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get();
         return view('admin.categories.index', compact('categories'));
     }
 

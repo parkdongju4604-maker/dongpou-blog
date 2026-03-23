@@ -15,7 +15,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>순서</th>
+                        <th>번호</th>
                         <th>카테고리명</th>
                         <th>슬러그</th>
                         <th>설명</th>
@@ -26,7 +26,7 @@
                 <tbody>
                     @forelse($categories as $cat)
                     <tr>
-                        <td style="color:#94a3b8;width:50px">{{ $cat->sort_order }}</td>
+                        <td style="color:#94a3b8;width:50px">{{ $loop->iteration }}</td>
                         <td style="font-weight:600">{{ $cat->name }}</td>
                         <td><code style="font-size:.78rem;background:#f1f5f9;padding:2px 6px;border-radius:4px">{{ $cat->slug }}</code></td>
                         <td style="color:#64748b">{{ $cat->description ?: '—' }}</td>
