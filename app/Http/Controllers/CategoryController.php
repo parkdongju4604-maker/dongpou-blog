@@ -88,64 +88,81 @@ class CategoryController extends Controller
             $payload['apply'] = true;
         }
 
-        try {
-            Log::info('Category suggestion request started.', [
-                'manager_base_url' => $managerBaseUrl,
-                'payload' => $payload,
-            ]);
+        $maxAttempts = 3;
+        $lastError = '알 수 없는 오류';
 
-            $response = Http::timeout(20)
-                ->acceptJson()
-                ->asJson()
-                ->post($managerBaseUrl . '/api/blogs/category-suggestions', $payload);
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            try {
+                Log::info('Category suggestion request started.', [
+                    'attempt' => $attempt,
+                    'max_attempts' => $maxAttempts,
+                    'manager_base_url' => $managerBaseUrl,
+                    'payload' => $payload,
+                ]);
 
-            $json = $response->json();
-            Log::info('Category suggestion response received.', [
-                'status' => $response->status(),
-                'success' => is_array($json) ? ($json['success'] ?? null) : null,
-                'suggested_categories' => is_array($json) ? ($json['data']['suggested_categories'] ?? null) : null,
-                'applied_categories' => is_array($json) ? ($json['data']['applied_categories'] ?? null) : null,
-                'message' => is_array($json) ? ($json['message'] ?? null) : null,
-                'raw_body' => Str::limit($response->body(), 1000),
-            ]);
+                $response = Http::timeout(20)
+                    ->acceptJson()
+                    ->asJson()
+                    ->post($managerBaseUrl . '/api/blogs/category-suggestions', $payload);
 
-            if (!is_array($json)) {
-                return back()->with('error', '외부 API 응답 형식이 올바르지 않습니다.');
+                $json = $response->json();
+                Log::info('Category suggestion response received.', [
+                    'attempt' => $attempt,
+                    'status' => $response->status(),
+                    'success' => is_array($json) ? ($json['success'] ?? null) : null,
+                    'suggested_categories' => is_array($json) ? ($json['data']['suggested_categories'] ?? null) : null,
+                    'applied_categories' => is_array($json) ? ($json['data']['applied_categories'] ?? null) : null,
+                    'message' => is_array($json) ? ($json['message'] ?? null) : null,
+                    'raw_body' => Str::limit($response->body(), 1000),
+                ]);
+
+                if (!$response->successful()) {
+                    $lastError = "외부 API HTTP {$response->status()}";
+                } elseif (!is_array($json)) {
+                    $lastError = '외부 API 응답 형식이 올바르지 않습니다.';
+                } elseif (!($json['success'] ?? false)) {
+                    $lastError = $json['message'] ?? '카테고리 추천 요청에 실패했습니다.';
+                } else {
+                    $data = $json['data'] ?? [];
+                    $apply = (bool) ($data['apply'] ?? $request->boolean('apply', false));
+
+                    if ($apply) {
+                        $applied = collect($data['applied_categories'] ?? [])
+                            ->map(fn ($item) => is_array($item) ? ($item['name'] ?? null) : $item)
+                            ->filter()
+                            ->values();
+
+                        $count = $applied->count();
+                        $list = $count > 0 ? ' (' . $applied->implode(', ') . ')' : '';
+
+                        return back()->with('success', "카테고리 자동 생성 요청이 완료되었습니다. {$count}개 적용{$list}");
+                    }
+
+                    $suggested = collect($data['suggested_categories'] ?? [])->filter()->values();
+                    $message = $suggested->isNotEmpty()
+                        ? '추천 카테고리: ' . $suggested->implode(', ')
+                        : '추천 카테고리를 받았지만 비어 있습니다.';
+
+                    return back()->with('success', $message);
+                }
+            } catch (\Throwable $e) {
+                $lastError = $e->getMessage();
+                Log::error('Category suggestion request failed.', [
+                    'attempt' => $attempt,
+                    'max_attempts' => $maxAttempts,
+                    'error' => $e->getMessage(),
+                    'manager_base_url' => $managerBaseUrl,
+                    'payload' => $payload,
+                ]);
             }
 
-            if (!($json['success'] ?? false)) {
-                return back()->with('error', $json['message'] ?? '카테고리 추천 요청에 실패했습니다.');
+            if ($attempt < $maxAttempts) {
+                // 외부 서버 일시 장애를 고려해 짧게 텀을 두고 재시도
+                usleep(500000);
             }
-
-            $data = $json['data'] ?? [];
-            $apply = (bool) ($data['apply'] ?? $request->boolean('apply', false));
-
-            if ($apply) {
-                $applied = collect($data['applied_categories'] ?? [])
-                    ->map(fn ($item) => is_array($item) ? ($item['name'] ?? null) : $item)
-                    ->filter()
-                    ->values();
-
-                $count = $applied->count();
-                $list = $count > 0 ? ' (' . $applied->implode(', ') . ')' : '';
-
-                return back()->with('success', "카테고리 자동 생성 요청이 완료되었습니다. {$count}개 적용{$list}");
-            }
-
-            $suggested = collect($data['suggested_categories'] ?? [])->filter()->values();
-            $message = $suggested->isNotEmpty()
-                ? '추천 카테고리: ' . $suggested->implode(', ')
-                : '추천 카테고리를 받았지만 비어 있습니다.';
-
-            return back()->with('success', $message);
-        } catch (\Throwable $e) {
-            Log::error('Category suggestion request failed.', [
-                'error' => $e->getMessage(),
-                'manager_base_url' => $managerBaseUrl,
-                'payload' => $payload,
-            ]);
-            return back()->with('error', '카테고리 추천 요청 중 오류가 발생했습니다: ' . $e->getMessage());
         }
+
+        return back()->with('error', "카테고리 추천 요청이 {$maxAttempts}회 모두 실패했습니다. 마지막 오류: {$lastError}");
     }
 }
 // Test commit for auto-deploy
