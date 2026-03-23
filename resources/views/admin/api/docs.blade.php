@@ -401,14 +401,19 @@ Content-Type:  multipart/form-data</pre>
                         <td>이미지 파일 (JPG, PNG, GIF, WEBP / 최대 10MB)</td>
                     </tr>
                     <tr>
+                        <td><code>category_slug</code> <span class="optional-badge">선택</span></td>
+                        <td>string</td>
+                        <td>카테고리 슬러그 (미전달 시 <code>uncategorized</code>)</td>
+                    </tr>
+                    <tr>
                         <td><code>title</code> <span class="optional-badge">선택</span></td>
                         <td>string</td>
-                        <td>이미지 제목 (최대 255자). 파일명 prefix로도 사용됨</td>
+                        <td>이미지 제목 (최대 255자). 누락 시 <code>{category_slug}-image_{timestamp}</code> 사용</td>
                     </tr>
                     <tr>
                         <td><code>alt_text</code> <span class="optional-badge">선택</span></td>
                         <td>string</td>
-                        <td>이미지 대체 텍스트 (최대 255자)</td>
+                        <td>이미지 대체 텍스트 (최대 255자). 누락 시 <code>{category_slug}-image_{timestamp}</code> 사용</td>
                     </tr>
                 </tbody>
             </table>
@@ -418,6 +423,7 @@ Content-Type:  multipart/form-data</pre>
 curl -X POST {{ $baseUrl }}/images \
   -H <span class="s">"Authorization: Bearer {token}"</span> \
   -F <span class="s">"image=@/path/to/photo.jpg"</span> \
+  -F <span class="s">"category_slug=dev"</span> \
   -F <span class="s">"title=대표 이미지"</span> \
   -F <span class="s">"alt_text=바다 위 일몰 사진"</span></pre>
 
