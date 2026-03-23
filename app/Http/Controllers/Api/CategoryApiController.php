@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class CategoryApiController extends Controller
 {
@@ -33,19 +34,46 @@ class CategoryApiController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $normalizedName = $this->normalizeCategoryName((string) $request->input('name', ''));
+
+        if ($normalizedName === '') {
+            return response()->json([
+                'message' => '유효한 카테고리 이름이 아닙니다.',
+                'errors'  => ['name' => ['name 필드는 필수입니다.']],
+            ], 422);
+        }
+
+        if ($this->looksMalformedCategoryName($normalizedName)) {
+            Log::warning('Rejected malformed category name from API.', [
+                'received' => $request->input('name'),
+                'normalized' => $normalizedName,
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            return response()->json([
+                'message' => '카테고리 이름 형식이 올바르지 않습니다.',
+                'errors'  => ['name' => ['JSON 조각/특수문자가 포함된 값은 허용되지 않습니다.']],
+            ], 422);
+        }
+
+        $validated = validator([
+            'name' => $normalizedName,
+            'description' => $request->input('description'),
+            'sort_order' => $request->input('sort_order'),
+        ], [
             'name'        => 'required|string|max:100|unique:categories,name',
             'description' => 'nullable|string|max:500',
             'sort_order'  => 'nullable|integer|min:0',
         ], [
             'name.required' => 'name 필드는 필수입니다.',
             'name.unique'   => '이미 존재하는 카테고리입니다.',
-        ]);
+        ])->validate();
 
         $category = Category::create([
-            'name'        => trim($request->name),
-            'description' => $request->description,
-            'sort_order'  => $request->sort_order ?? 0,
+            'name'        => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'sort_order'  => $validated['sort_order'] ?? 0,
         ]);
 
         return response()->json([
@@ -56,6 +84,29 @@ class CategoryApiController extends Controller
                 'slug' => $category->slug,
             ],
         ], 201);
+    }
+
+    private function normalizeCategoryName(string $name): string
+    {
+        $name = trim($name);
+        $name = preg_replace('/\s+/u', ' ', $name) ?? $name;
+
+        // 외부 파싱 오류로 끝에 붙는 따옴표/콤마/마침표 등을 제거
+        return trim($name, " \t\n\r\0\x0B\"'`,.");
+    }
+
+    private function looksMalformedCategoryName(string $name): bool
+    {
+        if (preg_match('/[\{\}\[\]"]/u', $name)) {
+            return true;
+        }
+
+        // JSON 키/응답 조각이 카테고리명으로 들어오는 경우 차단
+        if (preg_match('/\b(categories?|suggested_categories|existing_categories|apply|success|data)\b/i', $name)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

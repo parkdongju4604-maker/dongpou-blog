@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 //test
 class CategoryController extends Controller
@@ -88,12 +89,26 @@ class CategoryController extends Controller
         }
 
         try {
+            Log::info('Category suggestion request started.', [
+                'manager_base_url' => $managerBaseUrl,
+                'payload' => $payload,
+            ]);
+
             $response = Http::timeout(20)
                 ->acceptJson()
                 ->asJson()
                 ->post($managerBaseUrl . '/api/blogs/category-suggestions', $payload);
 
             $json = $response->json();
+            Log::info('Category suggestion response received.', [
+                'status' => $response->status(),
+                'success' => is_array($json) ? ($json['success'] ?? null) : null,
+                'suggested_categories' => is_array($json) ? ($json['data']['suggested_categories'] ?? null) : null,
+                'applied_categories' => is_array($json) ? ($json['data']['applied_categories'] ?? null) : null,
+                'message' => is_array($json) ? ($json['message'] ?? null) : null,
+                'raw_body' => Str::limit($response->body(), 1000),
+            ]);
+
             if (!is_array($json)) {
                 return back()->with('error', '외부 API 응답 형식이 올바르지 않습니다.');
             }
@@ -124,6 +139,11 @@ class CategoryController extends Controller
 
             return back()->with('success', $message);
         } catch (\Throwable $e) {
+            Log::error('Category suggestion request failed.', [
+                'error' => $e->getMessage(),
+                'manager_base_url' => $managerBaseUrl,
+                'payload' => $payload,
+            ]);
             return back()->with('error', '카테고리 추천 요청 중 오류가 발생했습니다: ' . $e->getMessage());
         }
     }
