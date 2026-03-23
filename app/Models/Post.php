@@ -14,6 +14,8 @@ class Post extends Model
 {
     use HasFactory;
 
+    private static ?array $categorySlugMapCache = null;
+
     protected $fillable = [
         'title', 'slug', 'excerpt', 'content', 'content_type',
         'thumbnail', 'category', 'published', 'published_at',
@@ -162,5 +164,21 @@ class Post extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    public function getCategoryPathSegmentAttribute(): string
+    {
+        if (self::$categorySlugMapCache === null) {
+            self::$categorySlugMapCache = Category::query()
+                ->pluck('slug', 'name')
+                ->toArray();
+        }
+
+        $slug = self::$categorySlugMapCache[$this->category] ?? null;
+        if (filled($slug)) {
+            return (string) $slug;
+        }
+
+        return rawurlencode((string) $this->category);
     }
 }

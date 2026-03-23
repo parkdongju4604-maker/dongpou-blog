@@ -19,8 +19,8 @@ use Illuminate\Support\Facades\Route;
 
 // ── 공개 블로그 라우트
 Route::get('/', [PostController::class, 'index'])->name('home');
-Route::get('/category/{category}', [PostController::class, 'category'])->name('posts.category');
-Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show');
+Route::get('/category/{category}', [PostController::class, 'category'])->name('posts.category.legacy');
+Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show.legacy');
 
 // ── 검색
 Route::get('/search', [SearchController::class, 'index'])->name('search');
@@ -111,3 +111,12 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
     Route::delete('/security/rules/{rule}',          [SecurityController::class, 'destroy'])->name('security.rules.destroy');
     Route::delete('/security/logs',                  [SecurityController::class, 'clearLogs'])->name('security.logs.clear');
 });
+
+// ── 공개 canonical 라우트 (기존 정적 라우트/관리자 라우트보다 뒤에 배치)
+$publicReserved = 'admin|api|feed|posts|category|search|tags|privacy-policy|sitemap\.xml|robots\.txt';
+Route::get('/{categorySlug}/{slug}', [PostController::class, 'showByCategory'])
+    ->where('categorySlug', "^(?!({$publicReserved})$).+")
+    ->name('posts.show');
+Route::get('/{categorySlug}', [PostController::class, 'categoryBySlug'])
+    ->where('categorySlug', "^(?!({$publicReserved})$).+")
+    ->name('posts.category');

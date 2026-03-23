@@ -62,7 +62,7 @@
                     <td>
                         @if($post->status === 'published')
                             {{-- 발행된 글: 실제 포스트 페이지로 이동 --}}
-                            <a href="{{ route('posts.show', $post->slug) }}" target="_blank"
+                            <a href="{{ route('posts.show', ['categorySlug' => $post->category_path_segment, 'slug' => $post->slug]) }}" target="_blank"
                                style="font-weight:600;color:#1e293b;max-width:340px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
                                 {{ $post->title }}
                             </a>

@@ -7,7 +7,7 @@
     $isTagPage    = isset($tag);
     $canonicalUrl = $isTagPage
         ? route('tags.show', $tag->slug)
-        : (isset($category) ? route('posts.category', $category) : route('home'));
+        : (isset($category) ? route('posts.category', ['categorySlug' => ($currentCategorySlug ?? rawurlencode($category))]) : route('home'));
     $blogSchema   = ['@context'=>'https://schema.org','@type'=>'Blog','name'=>$blogName,'description'=>$blogDesc,'url'=>url('/')];
 @endphp
 
@@ -44,10 +44,10 @@
            class="tab {{ !isset($category) ? 'active' : '' }}"
            aria-current="{{ !isset($category) ? 'page' : 'false' }}">전체</a>
         @foreach($categories as $cat)
-            <a href="{{ route('posts.category', $cat) }}"
-               class="tab {{ isset($category) && $category === $cat ? 'active' : '' }}"
-               aria-current="{{ isset($category) && $category === $cat ? 'page' : 'false' }}">
-                {{ $cat }}
+            <a href="{{ route('posts.category', ['categorySlug' => $cat['slug']]) }}"
+               class="tab {{ isset($category) && $category === $cat['name'] ? 'active' : '' }}"
+               aria-current="{{ isset($category) && $category === $cat['name'] ? 'page' : 'false' }}">
+                {{ $cat['name'] }}
             </a>
         @endforeach
     </div>
@@ -62,7 +62,7 @@
     <div class="grid" role="list">
         @foreach($posts as $post)
         <article role="listitem">
-            <a href="{{ route('posts.show', $post->slug) }}" class="card">
+            <a href="{{ route('posts.show', ['categorySlug' => $post->category_path_segment, 'slug' => $post->slug]) }}" class="card">
                 <div class="card-body">
                     <div class="card-category">{{ $post->category }}</div>
                     <h2 class="card-title">{{ $post->title }}</h2>

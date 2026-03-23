@@ -37,11 +37,19 @@
                                         onclick="openEdit({{ $cat->id }}, '{{ addslashes($cat->name) }}', '{{ addslashes($cat->slug) }}', '{{ addslashes($cat->description) }}', {{ $cat->sort_order }})">
                                     수정
                                 </button>
-                                <form action="{{ route('admin.categories.destroy', $cat) }}" method="POST"
-                                      onsubmit="return confirm('카테고리를 삭제하시겠습니까?\n삭제해도 기존 글의 카테고리는 유지됩니다.')">
-                                    @csrf @method('DELETE')
-                                    <button class="btn btn-danger btn-sm">삭제</button>
-                                </form>
+                                @if($cat->post_count > 0)
+                                    <button type="button" class="btn btn-secondary btn-sm" disabled
+                                            title="글이 있는 카테고리는 삭제할 수 없습니다. 먼저 글을 이동/삭제하세요."
+                                            style="opacity:.55;cursor:not-allowed">
+                                        삭제 불가
+                                    </button>
+                                @else
+                                    <form action="{{ route('admin.categories.destroy', $cat) }}" method="POST"
+                                          onsubmit="return confirm('카테고리를 삭제하시겠습니까?\n연결된 글이 없을 때만 삭제할 수 있습니다.')">
+                                        @csrf @method('DELETE')
+                                        <button class="btn btn-danger btn-sm">삭제</button>
+                                    </form>
+                                @endif
                             </div>
                         </td>
                     </tr>

@@ -9,6 +9,7 @@ use App\Models\Setting;
 use App\Models\Tag;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
@@ -18,21 +19,57 @@ class PostController extends Controller
     {
         $perPage    = (int) Setting::get('posts_per_page', 9);
         $posts      = Post::with('tags')->published()->paginate($perPage);
-        $categories = Post::published()->reorder()->distinct()->pluck('category');
+        $categories = $this->buildCategoryTabs();
         return view('posts.index', compact('posts', 'categories'));
     }
 
     public function category(string $category)
     {
+        $segment = $this->resolveCategoryPathSegment(urldecode($category));
+        return redirect()->route('posts.category', ['categorySlug' => $segment], 301);
+    }
+
+    public function categoryBySlug(string $categorySlug)
+    {
+        [$categoryName, $canonicalSegment] = $this->resolveCategoryBySegment($categorySlug);
+        if ($categorySlug !== $canonicalSegment) {
+            return redirect()->route('posts.category', ['categorySlug' => $canonicalSegment], 301);
+        }
+
         $perPage    = (int) Setting::get('posts_per_page', 9);
-        $posts      = Post::with('tags')->published()->where('category', $category)->paginate($perPage);
-        $categories = Post::published()->reorder()->distinct()->pluck('category');
-        return view('posts.index', compact('posts', 'categories', 'category'));
+        $posts      = Post::with('tags')->published()->where('category', $categoryName)->paginate($perPage);
+        $categories = $this->buildCategoryTabs();
+        $category   = $categoryName;
+        $currentCategorySlug = $canonicalSegment;
+
+        return view('posts.index', compact('posts', 'categories', 'category', 'currentCategorySlug'));
     }
 
     public function show(string $slug)
     {
-        $post    = Post::with('tags')->published()->where('slug', $slug)->firstOrFail();
+        $post = Post::published()->where('slug', $slug)->firstOrFail();
+        return redirect()->route('posts.show', [
+            'categorySlug' => $post->category_path_segment,
+            'slug' => $post->slug,
+        ], 301);
+    }
+
+    public function showByCategory(string $categorySlug, string $slug)
+    {
+        $post = Post::with('tags')->published()->where('slug', $slug)->firstOrFail();
+        $canonicalSegment = $post->category_path_segment;
+        if ($categorySlug !== $canonicalSegment) {
+            return redirect()->route('posts.show', [
+                'categorySlug' => $canonicalSegment,
+                'slug' => $post->slug,
+            ], 301);
+        }
+
+        return $this->renderShow($post);
+    }
+
+    private function renderShow(Post $post)
+    {
         $post->increment('view_count');
 
         // 같은 카테고리 관련 글 (최대 3개)
@@ -72,6 +109,49 @@ class PostController extends Controller
             ->get();
 
         return view('posts.show', compact('post', 'related', 'prevPost', 'nextPost', 'comments'));
+    }
+
+    private function buildCategoryTabs()
+    {
+        $names = Post::published()->reorder()->distinct()->pluck('category');
+
+        return $names->map(function (string $name) {
+            return [
+                'name' => $name,
+                'slug' => $this->resolveCategoryPathSegment($name),
+            ];
+        });
+    }
+
+    private function resolveCategoryBySegment(string $segment): array
+    {
+        $decoded = urldecode($segment);
+
+        $category = Category::query()
+            ->where('slug', $segment)
+            ->orWhere('name', $decoded)
+            ->first();
+
+        if ($category) {
+            return [$category->name, $this->resolveCategoryPathSegment($category->name)];
+        }
+
+        return [$decoded, $this->resolveCategoryPathSegment($decoded)];
+    }
+
+    private function resolveCategoryPathSegment(string $categoryName): string
+    {
+        $slug = Category::query()->where('name', $categoryName)->value('slug');
+        if (filled($slug)) {
+            return (string) $slug;
+        }
+
+        $slug = Str::slug($categoryName);
+        if (filled($slug)) {
+            return $slug;
+        }
+
+        return rawurlencode($categoryName);
     }
 
     // ── 관리자 라우트 ────────────────────────────

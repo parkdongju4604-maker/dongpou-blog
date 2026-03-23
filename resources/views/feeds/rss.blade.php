@@ -14,7 +14,7 @@
 
     @foreach($posts as $post)
     @php
-        $postUrl = route('posts.show', $post->slug);
+        $postUrl = route('posts.show', ['categorySlug' => $post->category_path_segment, 'slug' => $post->slug]);
         $excerpt = $post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->content), 200);
     @endphp
     <item>

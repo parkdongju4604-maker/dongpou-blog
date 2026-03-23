@@ -125,7 +125,7 @@
         <div class="search-results" role="list" aria-label="검색 결과">
             @foreach($posts as $post)
             <article role="listitem">
-                <a href="{{ route('posts.show', $post->slug) }}" class="search-item">
+                <a href="{{ route('posts.show', ['categorySlug' => $post->category_path_segment, 'slug' => $post->slug]) }}" class="search-item">
                     <div class="search-item-cat">{{ $post->category }}</div>
                     <h2 class="search-item-title">
                         {!! preg_replace('/(' . preg_quote(e($q), '/') . ')/iu', '<mark>$1</mark>', e($post->title)) !!}

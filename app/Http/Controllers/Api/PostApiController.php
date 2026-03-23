@@ -84,7 +84,7 @@ class PostApiController extends Controller
                 'slug'          => rawurlencode($post->slug),
                 'status'        => $wpStatus,
                 'type'          => 'post',
-                'link'          => url('/posts/' . rawurlencode($post->slug)),
+                'link'          => route('posts.show', ['categorySlug' => $post->category_path_segment, 'slug' => $post->slug]),
                 'title'         => ['rendered' => e($post->title)],
                 'content'       => [
                     'rendered'  => $post->rendered_content,
@@ -207,7 +207,7 @@ class PostApiController extends Controller
                 'id'           => $post->id,
                 'title'        => $post->title,
                 'slug'         => $post->slug,
-                'url'          => route('posts.show', $post->slug),
+                'url'          => route('posts.show', ['categorySlug' => $post->category_path_segment, 'slug' => $post->slug]),
                 'category'     => $post->category,
                 'status'       => $post->status,
                 'published_at' => $post->published_at?->toIso8601String(),

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -63,6 +64,13 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
+        $postCount = Post::where('category', $category->name)->count();
+        if ($postCount > 0) {
+            return redirect()
+                ->route('admin.categories.index')
+                ->with('error', "카테고리를 삭제할 수 없습니다. '{$category->name}' 카테고리에 글이 {$postCount}개 있습니다. 먼저 글을 이동하거나 삭제해주세요.");
+        }
+
         $category->delete();
         return redirect()->route('admin.categories.index')->with('success', '카테고리가 삭제되었습니다.');
     }

@@ -10,7 +10,7 @@
     $seoTitle   = $post->title;
     $excerpt    = $post->excerpt ?: Str::limit(strip_tags($post->content), 155);
     $ogImage    = $post->thumbnail ?: $ogImgDefault;
-    $postUrl      = route('posts.show', $post->slug);
+    $postUrl      = route('posts.show', ['categorySlug' => $post->category_path_segment, 'slug' => $post->slug]);
     $blogName     = Setting::get('blog_name', config('app.name'));
     $baseUrl      = url('/');
 
@@ -52,7 +52,7 @@
         '@type'    => 'BreadcrumbList',
         'itemListElement' => [
             ['@type' => 'ListItem', 'position' => 1, 'name' => $blogName, 'item' => $baseUrl],
-            ['@type' => 'ListItem', 'position' => 2, 'name' => $post->category, 'item' => route('posts.category', $post->category)],
+            ['@type' => 'ListItem', 'position' => 2, 'name' => $post->category, 'item' => route('posts.category', ['categorySlug' => $post->category_path_segment])],
             ['@type' => 'ListItem', 'position' => 3, 'name' => $post->title, 'item' => $postUrl],
         ],
     ];
@@ -472,7 +472,7 @@ html { scroll-padding-top: 80px; }
             <ol class="breadcrumb">
                 <li><a href="{{ route('home') }}">홈</a></li>
                 <li class="breadcrumb-sep" aria-hidden="true">›</li>
-                <li><a href="{{ route('posts.category', $post->category) }}">{{ $post->category }}</a></li>
+                <li><a href="{{ route('posts.category', ['categorySlug' => $post->category_path_segment]) }}">{{ $post->category }}</a></li>
                 <li class="breadcrumb-sep" aria-hidden="true">›</li>
                 <li style="color:#6b7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px" aria-current="page">{{ $post->title }}</li>
             </ol>
@@ -485,7 +485,7 @@ html { scroll-padding-top: 80px; }
             <meta itemprop="author"        content="{{ $authorName }}">
 
             <header class="post-hero">
-                <a href="{{ route('posts.category', $post->category) }}"
+                <a href="{{ route('posts.category', ['categorySlug' => $post->category_path_segment]) }}"
                    class="post-category-badge" itemprop="articleSection">
                     {{ $post->category }}
                 </a>
@@ -568,7 +568,7 @@ html { scroll-padding-top: 80px; }
             <h2 class="related-title">📚 관련 글</h2>
             <div class="related-grid">
                 @foreach($related as $i => $r)
-                <a href="{{ route('posts.show', $r->slug) }}" class="related-card">
+                <a href="{{ route('posts.show', ['categorySlug' => $r->category_path_segment, 'slug' => $r->slug]) }}" class="related-card">
                     @if($r->thumbnail)
                         <img class="related-thumb" src="{{ $r->thumbnail }}" alt="{{ $r->title }}" loading="lazy">
                     @else
@@ -594,7 +594,7 @@ html { scroll-padding-top: 80px; }
         <nav class="post-nav" aria-label="이전/다음 글">
             <div class="post-nav-inner">
                 @if($prevPost)
-                <a href="{{ route('posts.show', $prevPost->slug) }}" class="post-nav-item post-nav-prev">
+                <a href="{{ route('posts.show', ['categorySlug' => $prevPost->category_path_segment, 'slug' => $prevPost->slug]) }}" class="post-nav-item post-nav-prev">
                     <span class="post-nav-label">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
                         이전 글
@@ -613,7 +613,7 @@ html { scroll-padding-top: 80px; }
                 </a>
 
                 @if($nextPost)
-                <a href="{{ route('posts.show', $nextPost->slug) }}" class="post-nav-item post-nav-next">
+                <a href="{{ route('posts.show', ['categorySlug' => $nextPost->category_path_segment, 'slug' => $nextPost->slug]) }}" class="post-nav-item post-nav-next">
                     <span class="post-nav-label">
                         다음 글
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>

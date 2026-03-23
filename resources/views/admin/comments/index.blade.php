@@ -81,7 +81,7 @@
                     </td>
                     <td style="max-width:160px">
                         @if($c->post)
-                        <a href="{{ route('posts.show', $c->post->slug) }}#comment-{{ $c->id }}"
+                        <a href="{{ route('posts.show', ['categorySlug' => $c->post->category_path_segment, 'slug' => $c->post->slug]) }}#comment-{{ $c->id }}"
                            target="_blank"
                            style="font-size:.8rem;color:#4f46e5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
                             {{ $c->post->title }}

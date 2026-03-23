@@ -14,7 +14,7 @@
     {{-- 카테고리 --}}
     @foreach($categories as $category)
     <url>
-        <loc>{{ $baseUrl }}/category/{{ urlencode($category) }}</loc>
+        <loc>{{ $baseUrl }}/{{ $category['slug'] }}</loc>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
         <lastmod>{{ now()->toAtomString() }}</lastmod>
@@ -34,7 +34,7 @@
     {{-- 포스트 --}}
     @foreach($posts as $post)
     <url>
-        <loc>{{ $baseUrl }}/posts/{{ $post->slug }}</loc>
+        <loc>{{ route('posts.show', ['categorySlug' => $post->category_path_segment, 'slug' => $post->slug]) }}</loc>
         <lastmod>{{ $post->updated_at->toAtomString() }}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
