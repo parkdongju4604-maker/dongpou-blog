@@ -65,6 +65,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
     // 카테고리 관리
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::post('/categories/suggestions', [CategoryController::class, 'suggestions'])->name('categories.suggestions');
     Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 

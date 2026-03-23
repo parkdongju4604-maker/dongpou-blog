@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'manager' => [
+        'base_url' => env('MANAGER_SERVER_URL'),
+    ],
+
 ];

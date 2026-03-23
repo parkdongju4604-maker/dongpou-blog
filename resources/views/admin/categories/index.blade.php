@@ -57,6 +57,24 @@
 
     {{-- 추가/수정 폼 --}}
     <div>
+        {{-- 자동 생성 --}}
+        <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><h3>AI 카테고리 추천/생성</h3></div>
+            <div class="card-body">
+                <p style="font-size:.82rem;color:#64748b;line-height:1.6;margin-bottom:12px">
+                    현재 블로그 URL 기준으로 외부 관리서버에 요청하여 추천 카테고리 3개를 생성합니다.
+                </p>
+                <form method="POST" action="{{ route('admin.categories.suggestions') }}"
+                      onsubmit="return confirm('추천 카테고리 3개를 자동 생성할까요?')">
+                    @csrf
+                    <input type="hidden" name="apply" value="1">
+                    <button type="submit" class="btn btn-success" style="width:100%;justify-content:center">
+                        카테고리 3개 자동 생성
+                    </button>
+                </form>
+            </div>
+        </div>
+
         {{-- 추가 폼 --}}
         <div class="card" id="form-add">
             <div class="card-header"><h3>카테고리 추가</h3></div>
