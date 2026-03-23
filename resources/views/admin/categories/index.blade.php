@@ -62,7 +62,7 @@
             <div class="card-header"><h3>AI 카테고리 추천/생성</h3></div>
             <div class="card-body">
                 <p style="font-size:.82rem;color:#64748b;line-height:1.6;margin-bottom:12px">
-                    추천 카테고리 3개를 생성합니다.
+                    추천 카테고리를 생성합니다.
                 </p>
                 <form method="POST" action="{{ route('admin.categories.suggestions') }}"
                       onsubmit="return submitSuggestion(this)">
