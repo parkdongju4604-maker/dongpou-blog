@@ -37,15 +37,31 @@ class ImageApiController extends Controller
             'alt_text.max'   => 'alt_text는 255자를 초과할 수 없습니다.',
         ]);
 
-        $file     = $request->file('image');
-        $dir      = 'uploads/posts/' . date('Y/m');
-        $filename = time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+        $file = $request->file('image');
+        $dir = 'uploads/posts/' . date('Y/m');
+        $title = isset($validated['title']) ? trim($validated['title']) : null;
+        $altText = isset($validated['alt_text']) ? trim($validated['alt_text']) : null;
+
+        $baseTitle = trim((string) preg_replace('/[^\pL\pN]+/u', '-', (string) $title), '-');
+        $safeTitle = Str::limit($baseTitle !== '' ? $baseTitle : 'image', 60, '');
+        $filename = $safeTitle . '_' . time() . '_' . Str::random(4) . '.' . $file->getClientOriginalExtension();
         $path     = $file->storeAs($dir, $filename, 'public');
 
         // 절대 URL 반환 (API 소비자가 외부에서 접근 가능한 URL)
         $absoluteUrl = url(Storage::url($path));
-        $title = isset($validated['title']) ? trim($validated['title']) : null;
-        $altText = isset($validated['alt_text']) ? trim($validated['alt_text']) : null;
+        $normalizedTitle = $title !== '' ? $title : null;
+        $normalizedAltText = $altText !== '' ? $altText : null;
+        $markdownAlt = $normalizedAltText ?? $normalizedTitle ?? 'image';
+        $markdownTitle = $normalizedTitle ? ' "' . addslashes($normalizedTitle) . '"' : '';
+
+        $htmlAttrs = '';
+        if ($normalizedAltText) {
+            $htmlAttrs .= ' alt="' . e($normalizedAltText) . '"';
+        }
+        if ($normalizedTitle) {
+            $htmlAttrs .= ' title="' . e($normalizedTitle) . '"';
+        }
+        $htmlTag = '<img src="' . e($absoluteUrl) . '"' . $htmlAttrs . ' />';
 
         return response()->json([
             'data' => [
@@ -54,8 +70,10 @@ class ImageApiController extends Controller
                 'filename' => $filename,
                 'size'     => $file->getSize(),
                 'mime'     => $file->getMimeType(),
-                'title'    => $title !== '' ? $title : null,
-                'alt_text' => $altText !== '' ? $altText : null,
+                'title'    => $normalizedTitle,
+                'alt_text' => $normalizedAltText,
+                'markdown' => '![' . $markdownAlt . '](' . $absoluteUrl . $markdownTitle . ')',
+                'html'     => $htmlTag,
             ],
             'message' => '이미지가 업로드되었습니다.',
         ], 201);

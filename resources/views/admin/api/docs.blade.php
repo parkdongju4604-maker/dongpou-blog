@@ -382,7 +382,7 @@ res = requests.delete(
         <div class="endpoint-header">
             <span class="method-badge method-post">POST</span>
             <span class="endpoint-path">/api/images</span>
-            <span class="endpoint-desc">이미지 업로드 → URL 반환</span>
+            <span class="endpoint-desc">이미지 업로드 + 메타값 반영 + 삽입 문자열 반환</span>
         </div>
         <div class="endpoint-body">
             <h4>Request Headers</h4>
@@ -403,7 +403,7 @@ Content-Type:  multipart/form-data</pre>
                     <tr>
                         <td><code>title</code> <span class="optional-badge">선택</span></td>
                         <td>string</td>
-                        <td>이미지 제목 (최대 255자)</td>
+                        <td>이미지 제목 (최대 255자). 파일명 prefix로도 사용됨</td>
                     </tr>
                     <tr>
                         <td><code>alt_text</code> <span class="optional-badge">선택</span></td>
@@ -424,13 +424,15 @@ curl -X POST {{ $baseUrl }}/images \
             <h4 style="margin-top:16px">Response 201</h4>
             <pre>{
   <span class="k">"data"</span>: {
-    <span class="k">"url"</span>:      <span class="s">"http://43.200.236.216/storage/uploads/posts/2026/03/1234567890_abcdef12.jpg"</span>,
-    <span class="k">"path"</span>:     <span class="s">"uploads/posts/2026/03/1234567890_abcdef12.jpg"</span>,
-    <span class="k">"filename"</span>: <span class="s">"1234567890_abcdef12.jpg"</span>,
+    <span class="k">"url"</span>:      <span class="s">"http://43.200.236.216/storage/uploads/posts/2026/03/대표-이미지_1710738293_ab12.jpg"</span>,
+    <span class="k">"path"</span>:     <span class="s">"uploads/posts/2026/03/대표-이미지_1710738293_ab12.jpg"</span>,
+    <span class="k">"filename"</span>: <span class="s">"대표-이미지_1710738293_ab12.jpg"</span>,
     <span class="k">"size"</span>:     <span class="n">204800</span>,
     <span class="k">"mime"</span>:     <span class="s">"image/jpeg"</span>,
     <span class="k">"title"</span>:    <span class="s">"대표 이미지"</span>,
-    <span class="k">"alt_text"</span>: <span class="s">"바다 위 일몰 사진"</span>
+    <span class="k">"alt_text"</span>: <span class="s">"바다 위 일몰 사진"</span>,
+    <span class="k">"markdown"</span>: <span class="s">"![바다 위 일몰 사진](http://43.200.236.216/storage/uploads/posts/2026/03/대표-이미지_1710738293_ab12.jpg \"대표 이미지\")"</span>,
+    <span class="k">"html"</span>:     <span class="s">"&lt;img src=\"http://43.200.236.216/storage/uploads/posts/2026/03/대표-이미지_1710738293_ab12.jpg\" alt=\"바다 위 일몰 사진\" title=\"대표 이미지\" /&gt;"</span>
   },
   <span class="k">"message"</span>: <span class="s">"이미지가 업로드되었습니다."</span>
 }</pre>
