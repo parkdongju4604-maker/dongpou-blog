@@ -14,7 +14,7 @@ class Category extends Model
         parent::boot();
         static::saving(function ($category) {
             if (empty($category->slug)) {
-                $category->slug = Str::slug($category->name) ?: Str::random(8);
+                $category->slug = Str::slug($category->name) ?: Str::lower(Str::random(8));
             }
         });
     }

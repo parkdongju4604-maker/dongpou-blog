@@ -30,7 +30,7 @@ class CategoryController extends Controller
 
         $data['slug']       = filled($data['slug'] ?? null)
             ? $data['slug']
-            : (Str::slug($data['name']) ?: Str::random(8));
+            : (Str::slug($data['name']) ?: Str::lower(Str::random(8)));
         $data['sort_order'] = $data['sort_order'] ?? 0;
 
         Category::create($data);
