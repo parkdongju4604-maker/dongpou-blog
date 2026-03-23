@@ -9,7 +9,15 @@
     <div class="card">
         <div class="card-header">
             <h3>카테고리 목록</h3>
-            <span style="font-size:.8rem;color:#94a3b8">{{ $categories->count() }}개</span>
+            <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:.8rem;color:#94a3b8">{{ $categories->count() }}개</span>
+                <form method="POST" action="{{ route('admin.categories.suggestions') }}"
+                      onsubmit="return confirm('추천 카테고리 3개를 자동 생성할까요?')">
+                    @csrf
+                    <input type="hidden" name="apply" value="1">
+                    <button type="submit" class="btn btn-success btn-sm">자동 생성</button>
+                </form>
+            </div>
         </div>
         <div class="table-wrap">
             <table>
