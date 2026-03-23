@@ -400,6 +400,16 @@ Content-Type:  multipart/form-data</pre>
                         <td>file</td>
                         <td>이미지 파일 (JPG, PNG, GIF, WEBP / 최대 10MB)</td>
                     </tr>
+                    <tr>
+                        <td><code>title</code> <span class="optional-badge">선택</span></td>
+                        <td>string</td>
+                        <td>이미지 제목 (최대 255자)</td>
+                    </tr>
+                    <tr>
+                        <td><code>alt_text</code> <span class="optional-badge">선택</span></td>
+                        <td>string</td>
+                        <td>이미지 대체 텍스트 (최대 255자)</td>
+                    </tr>
                 </tbody>
             </table>
 
@@ -407,7 +417,9 @@ Content-Type:  multipart/form-data</pre>
             <pre><span class="c"># curl (파일 업로드)</span>
 curl -X POST {{ $baseUrl }}/images \
   -H <span class="s">"Authorization: Bearer {token}"</span> \
-  -F <span class="s">"image=@/path/to/photo.jpg"</span></pre>
+  -F <span class="s">"image=@/path/to/photo.jpg"</span> \
+  -F <span class="s">"title=대표 이미지"</span> \
+  -F <span class="s">"alt_text=바다 위 일몰 사진"</span></pre>
 
             <h4 style="margin-top:16px">Response 201</h4>
             <pre>{
@@ -416,7 +428,9 @@ curl -X POST {{ $baseUrl }}/images \
     <span class="k">"path"</span>:     <span class="s">"uploads/posts/2026/03/1234567890_abcdef12.jpg"</span>,
     <span class="k">"filename"</span>: <span class="s">"1234567890_abcdef12.jpg"</span>,
     <span class="k">"size"</span>:     <span class="n">204800</span>,
-    <span class="k">"mime"</span>:     <span class="s">"image/jpeg"</span>
+    <span class="k">"mime"</span>:     <span class="s">"image/jpeg"</span>,
+    <span class="k">"title"</span>:    <span class="s">"대표 이미지"</span>,
+    <span class="k">"alt_text"</span>: <span class="s">"바다 위 일몰 사진"</span>
   },
   <span class="k">"message"</span>: <span class="s">"이미지가 업로드되었습니다."</span>
 }</pre>
