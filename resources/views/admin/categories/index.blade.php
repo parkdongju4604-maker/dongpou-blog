@@ -9,15 +9,7 @@
     <div class="card">
         <div class="card-header">
             <h3>카테고리 목록</h3>
-            <div style="display:flex;align-items:center;gap:8px">
-                <span style="font-size:.8rem;color:#94a3b8">{{ $categories->count() }}개</span>
-                <form method="POST" action="{{ route('admin.categories.suggestions') }}"
-                      onsubmit="return confirm('추천 카테고리 3개를 자동 생성할까요?')">
-                    @csrf
-                    <input type="hidden" name="apply" value="1">
-                    <button type="submit" class="btn btn-success btn-sm">자동 생성</button>
-                </form>
-            </div>
+            <span style="font-size:.8rem;color:#94a3b8">{{ $categories->count() }}개</span>
         </div>
         <div class="table-wrap">
             <table>
@@ -70,14 +62,15 @@
             <div class="card-header"><h3>AI 카테고리 추천/생성</h3></div>
             <div class="card-body">
                 <p style="font-size:.82rem;color:#64748b;line-height:1.6;margin-bottom:12px">
-                    현재 블로그 URL 기준으로 외부 관리서버에 요청하여 추천 카테고리 3개를 생성합니다.
+                    추천 카테고리 3개를 생성합니다.
                 </p>
                 <form method="POST" action="{{ route('admin.categories.suggestions') }}"
-                      onsubmit="return confirm('추천 카테고리 3개를 자동 생성할까요?')">
+                      onsubmit="return submitSuggestion(this)">
                     @csrf
                     <input type="hidden" name="apply" value="1">
-                    <button type="submit" class="btn btn-success" style="width:100%;justify-content:center">
-                        카테고리 3개 자동 생성
+                    <button type="submit" id="suggestion-submit-btn" class="btn btn-success" style="width:100%;justify-content:center;gap:8px">
+                        <span id="suggestion-spinner" style="display:none;width:12px;height:12px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></span>
+                        <span id="suggestion-submit-text">카테고리 자동 생성</span>
                     </button>
                 </form>
             </div>
@@ -198,5 +191,31 @@ function closeEdit() {
     document.getElementById('form-edit').style.display = 'none';
     editSlugEdited = false;
 }
+
+function submitSuggestion(form) {
+    if (!confirm('추천 카테고리 3개를 자동 생성할까요?')) {
+        return false;
+    }
+
+    const btn = document.getElementById('suggestion-submit-btn');
+    const text = document.getElementById('suggestion-submit-text');
+    const spinner = document.getElementById('suggestion-spinner');
+
+    if (btn && text && spinner) {
+        btn.disabled = true;
+        btn.style.opacity = '.7';
+        btn.style.cursor = 'not-allowed';
+        spinner.style.display = 'inline-block';
+        text.textContent = '생성 중...';
+    }
+
+    return true;
+}
 </script>
+<style>
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
 @endpush
