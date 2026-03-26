@@ -53,15 +53,18 @@ class PostController extends Controller
         }
 
         $perPage = (int) Setting::get('posts_per_page', 9);
+        $ownerAliases = $this->ownerAuthorAliases();
         $posts = Post::with('tags')
             ->published()
-            ->where(function ($query) use ($authorName) {
-                $query->where('author_name', $authorName);
-
-                // 작성자 컬럼 도입 이전 레거시 데이터 호환
-                if ($authorName === $this->defaultAuthorName()) {
-                    $query->orWhereNull('author_name')->orWhere('author_name', '');
+            ->where(function ($query) use ($authorName, $ownerAliases) {
+                if (in_array($authorName, $ownerAliases, true)) {
+                    $query->whereIn('author_name', $ownerAliases)
+                        ->orWhereNull('author_name')
+                        ->orWhere('author_name', '');
+                    return;
                 }
+
+                $query->where('author_name', $authorName);
             })
             ->paginate($perPage);
 
@@ -211,12 +214,32 @@ class PostController extends Controller
 
     private function defaultAuthorSlug(string $defaultAuthorName): string
     {
-        $configured = trim((string) Setting::get('author_slug', ''));
+        $configured = $this->normalizeAuthorSlug((string) Setting::get('author_slug', ''));
         if ($configured !== '') {
-            return trim($configured, '/');
+            return $configured;
         }
 
         return $this->slugifyAuthorName($defaultAuthorName);
+    }
+
+    private function normalizeAuthorSlug(string $raw): string
+    {
+        $raw = trim($raw);
+        if ($raw === '') {
+            return '';
+        }
+
+        $path = parse_url($raw, PHP_URL_PATH);
+        if (is_string($path) && trim($path) !== '') {
+            $raw = $path;
+        }
+
+        $raw = trim($raw, '/');
+        if (str_starts_with($raw, 'author/')) {
+            $raw = substr($raw, 7);
+        }
+
+        return trim($raw, '/');
     }
 
     private function slugifyAuthorName(string $authorName): string
@@ -419,6 +442,16 @@ class PostController extends Controller
 
         $blogName = trim((string) Setting::get('blog_name', config('app.name', 'Blog')));
         return $blogName !== '' ? $blogName : (string) config('app.name', 'Blog');
+    }
+
+    private function ownerAuthorAliases(): array
+    {
+        return array_values(array_filter(array_unique([
+            trim((string) Setting::get('author_nickname', '')),
+            trim((string) Setting::get('author_name', '')),
+            trim((string) Setting::get('blog_name', config('app.name', 'Blog'))),
+            $this->defaultAuthorName(),
+        ])));
     }
 
     public function destroy(Post $post)

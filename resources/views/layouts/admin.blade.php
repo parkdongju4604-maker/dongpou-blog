@@ -172,7 +172,7 @@
     <div class="sidebar-logo">
         <a href="{{ route('admin.dashboard') }}" style="display:flex;align-items:center;gap:8px;">
             <div class="brand">관리자 패널</div>
-            <span style="font-size:.7rem;font-weight:600;color:#64748b;">v1.4.7</span>
+            <span style="font-size:.7rem;font-weight:600;color:#64748b;">v1.4.8</span>
         </a>
     </div>
 
