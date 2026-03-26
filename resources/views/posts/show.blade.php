@@ -2,15 +2,24 @@
     use Illuminate\Support\Str;
     use App\Models\Setting;
 
+    $blogName = Setting::get('blog_name', config('app.name'));
     $authorNickname = trim((string) Setting::get('author_nickname', ''));
     $authorNameSetting = trim((string) Setting::get('author_name', ''));
-    $defaultAuthorName = $authorNickname !== '' ? $authorNickname : ($authorNameSetting !== '' ? $authorNameSetting : Setting::get('blog_name', config('app.name')));
-    $postAuthorName = trim((string) ($post->author_name ?? ''));
-    if ($postAuthorName === '') {
-        $postAuthorName = $defaultAuthorName;
-    }
+    $defaultAuthorName = $authorNickname !== '' ? $authorNickname : ($authorNameSetting !== '' ? $authorNameSetting : $blogName);
+    $postAuthorRaw = trim((string) ($post->author_name ?? ''));
+    $isLegacyBlogNameAuthor = $postAuthorRaw !== '' && $postAuthorRaw === trim((string) $blogName) && $authorNickname !== '';
+    $postAuthorName = $isLegacyBlogNameAuthor
+        ? $defaultAuthorName
+        : ($postAuthorRaw !== '' ? $postAuthorRaw : $defaultAuthorName);
     $configuredAuthorSlug = trim((string) Setting::get('author_slug', ''));
-    $authorSlug = ($configuredAuthorSlug !== '' && $postAuthorName === $defaultAuthorName)
+    $ownerAliases = array_filter(array_unique([
+        trim((string) $defaultAuthorName),
+        trim((string) $authorNickname),
+        trim((string) $authorNameSetting),
+        trim((string) $blogName),
+    ]));
+    $isOwnerPost = in_array($postAuthorName, $ownerAliases, true);
+    $authorSlug = ($configuredAuthorSlug !== '' && $isOwnerPost)
         ? trim($configuredAuthorSlug, '/')
         : (Str::slug($postAuthorName) ?: ('author-' . substr(md5($postAuthorName), 0, 12)));
     $authorDescription = trim((string) Setting::get('author_description', ''));
@@ -23,7 +32,6 @@
     $excerpt    = $post->excerpt ?: Str::limit(strip_tags($post->content), 155);
     $ogImage    = $post->thumbnail ?: $ogImgDefault;
     $postUrl      = route('posts.show', ['categorySlug' => $post->category_path_segment, 'slug' => $post->slug]);
-    $blogName     = Setting::get('blog_name', config('app.name'));
     $baseUrl      = url('/');
 
     // wordCount: 한국어 포함이므로 공백 제거 후 글자 수로 산정
