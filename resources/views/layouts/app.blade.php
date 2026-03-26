@@ -12,7 +12,13 @@
     $ogImageDefault = Setting::get('og_image_default', '');
     $twitterHandle  = Setting::get('twitter_handle', '');
     $robotsIndex    = Setting::get('robots_index', 'index,follow');
-    $authorName     = Setting::get('author_name', $blogName);
+    $authorNickname = trim((string) Setting::get('author_nickname', ''));
+    $authorBaseName = trim((string) Setting::get('author_name', ''));
+    $authorName     = $authorNickname !== '' ? $authorNickname : ($authorBaseName !== '' ? $authorBaseName : $blogName);
+    $authorDescription = trim((string) Setting::get('author_description', ''));
+    $configuredAuthorSlug = trim((string) Setting::get('author_slug', ''));
+    $authorSlug = $configuredAuthorSlug !== '' ? trim($configuredAuthorSlug, '/') : (\Illuminate\Support\Str::slug($authorName) ?: ('author-' . substr(md5($authorName), 0, 12)));
+    $authorArchiveUrl = route('posts.author', ['authorSlug' => $authorSlug]);
     $metaKeywords   = Setting::get('meta_keywords', '');
     $headCode       = Setting::get('head_code', '');
     $canonicalUrl   = url()->current();
@@ -75,6 +81,11 @@
             'name'           => $blogName,
             'description'    => $blogDesc,
             'url'            => url('/'),
+            'author'         => [
+                '@type'       => 'Person',
+                'name'        => $authorName,
+                'url'         => $authorArchiveUrl,
+            ],
             'potentialAction' => [
                 '@type'       => 'SearchAction',
                 'target'      => [
@@ -84,6 +95,9 @@
                 'query-input' => 'required name=search_term_string',
             ],
         ];
+        if ($authorDescription !== '') {
+            $websiteSchema['author']['description'] = $authorDescription;
+        }
     @endphp
     <script type="application/ld+json">{!! json_encode($websiteSchema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!}</script>
     {{-- 피드 자동 감지 --}}

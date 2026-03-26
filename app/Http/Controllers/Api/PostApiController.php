@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ApiToken;
 use App\Models\Category;
 use App\Models\Post;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -140,6 +141,7 @@ class PostApiController extends Controller
      *   "content_type": "markdown|html",   // optional (default: markdown)
      *   "excerpt":      "요약",             // optional
      *   "category":     "개발",             // required
+     *   "author_name":  "피부관리사 OOO",   // optional
      *   "tags":         "태그1,태그2",      // optional (comma-separated)
      *   "publish_type": "publish|draft|schedule", // default: publish
      *   "scheduled_at": "2026-03-10T09:00" // required if publish_type=schedule
@@ -153,6 +155,7 @@ class PostApiController extends Controller
             'content_type' => 'nullable|in:markdown,html',
             'excerpt'      => 'nullable|string|max:500',
             'category'     => 'required|string|max:100',
+            'author_name'  => 'nullable|string|max:120',
             'tags'         => 'nullable|string|max:500',
             'publish_type' => 'nullable|in:publish,draft,schedule',
             'scheduled_at' => 'nullable|date|after:now',
@@ -167,6 +170,7 @@ class PostApiController extends Controller
 
         $publishType = $validated['publish_type'] ?? 'publish';
         $contentType = $validated['content_type'] ?? 'markdown';
+        $authorName = $this->resolvePostAuthorName($validated['author_name'] ?? null);
 
         [$published, $publishedAt] = match ($publishType) {
             'publish'  => [true,  now()],
@@ -190,6 +194,7 @@ class PostApiController extends Controller
             'content_type' => $contentType,
             'excerpt'      => $validated['excerpt'] ?? null,
             'category'     => $validated['category'],
+            'author_name'  => $authorName,
             'published'    => $published,
             'published_at' => $publishedAt,
             'thumbnail'    => $thumbnail,
@@ -209,6 +214,7 @@ class PostApiController extends Controller
                 'slug'         => $post->slug,
                 'url'          => route('posts.show', ['categorySlug' => $post->category_path_segment, 'slug' => $post->slug]),
                 'category'     => $post->category,
+                'author_name'  => $post->author_name,
                 'status'       => $post->status,
                 'published_at' => $post->published_at?->toIso8601String(),
                 'created_at'   => $post->created_at->toIso8601String(),
@@ -238,5 +244,26 @@ class PostApiController extends Controller
         }
 
         return ApiToken::findByToken($bearer) !== null;
+    }
+
+    private function resolvePostAuthorName(?string $authorName): string
+    {
+        $authorName = trim((string) $authorName);
+        if ($authorName !== '') {
+            return $authorName;
+        }
+
+        $authorNickname = trim((string) Setting::get('author_nickname', ''));
+        if ($authorNickname !== '') {
+            return $authorNickname;
+        }
+
+        $defaultAuthor = trim((string) Setting::get('author_name', ''));
+        if ($defaultAuthor !== '') {
+            return $defaultAuthor;
+        }
+
+        $blogName = trim((string) Setting::get('blog_name', config('app.name', 'Blog')));
+        return $blogName !== '' ? $blogName : (string) config('app.name', 'Blog');
     }
 }

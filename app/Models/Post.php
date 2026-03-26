@@ -18,7 +18,7 @@ class Post extends Model
 
     protected $fillable = [
         'title', 'slug', 'excerpt', 'content', 'content_type',
-        'thumbnail', 'category', 'published', 'published_at',
+        'thumbnail', 'category', 'author_name', 'published', 'published_at',
         'view_count',
     ];
 

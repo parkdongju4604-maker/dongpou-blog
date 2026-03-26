@@ -2,7 +2,19 @@
     use Illuminate\Support\Str;
     use App\Models\Setting;
 
-    $authorName   = Setting::get('author_name', Setting::get('blog_name', config('app.name')));
+    $authorNickname = trim((string) Setting::get('author_nickname', ''));
+    $authorNameSetting = trim((string) Setting::get('author_name', ''));
+    $defaultAuthorName = $authorNickname !== '' ? $authorNickname : ($authorNameSetting !== '' ? $authorNameSetting : Setting::get('blog_name', config('app.name')));
+    $postAuthorName = trim((string) ($post->author_name ?? ''));
+    if ($postAuthorName === '') {
+        $postAuthorName = $defaultAuthorName;
+    }
+    $configuredAuthorSlug = trim((string) Setting::get('author_slug', ''));
+    $authorSlug = ($configuredAuthorSlug !== '' && $postAuthorName === $defaultAuthorName)
+        ? trim($configuredAuthorSlug, '/')
+        : (Str::slug($postAuthorName) ?: ('author-' . substr(md5($postAuthorName), 0, 12)));
+    $authorDescription = trim((string) Setting::get('author_description', ''));
+    $authorArchiveUrl = route('posts.author', ['authorSlug' => $authorSlug]);
     $ogImgDefault = Setting::get('og_image_default', '');
     $kakaoJsKey   = Setting::get('kakao_js_key', '');
 
@@ -26,7 +38,11 @@
         'datePublished'    => $post->published_at?->toIso8601String(),
         'dateModified'     => $post->updated_at->toIso8601String(),
         'wordCount'        => $wordCount,
-        'author'           => ['@type' => 'Person', 'name' => $authorName],
+        'author'           => [
+            '@type' => 'Person',
+            'name' => $postAuthorName,
+            'url' => $authorArchiveUrl,
+        ],
         'publisher'        => [
             '@type' => 'Organization',
             'name'  => $blogName,
@@ -45,6 +61,9 @@
             'width'  => 1200,
             'height' => 630,
         ];
+    }
+    if ($authorDescription !== '') {
+        $articleSchema['author']['description'] = $authorDescription;
     }
 
     $breadcrumbSchema = [
@@ -96,7 +115,7 @@
 
 @section('title', $seoTitle . ' | ' . $blogName)
 @section('description', $excerpt)
-@section('author', $authorName)
+@section('author', $postAuthorName)
 @section('canonical', $postUrl)
 @section('og:type', 'article')
 @section('og:title', $seoTitle)
@@ -482,7 +501,6 @@ html { scroll-padding-top: 80px; }
         <article itemscope itemtype="https://schema.org/Article">
             <meta itemprop="datePublished" content="{{ $post->published_at?->toIso8601String() }}">
             <meta itemprop="dateModified"  content="{{ $post->updated_at->toIso8601String() }}">
-            <meta itemprop="author"        content="{{ $authorName }}">
 
             <header class="post-hero">
                 <a href="{{ route('posts.category', ['categorySlug' => $post->category_path_segment]) }}"
@@ -497,6 +515,11 @@ html { scroll-padding-top: 80px; }
                     <time datetime="{{ $post->published_at?->toIso8601String() }}">
                         {{ $post->published_at?->format('Y년 m월 d일') }}
                     </time>
+                    <span class="post-meta-sep">·</span>
+                    <span itemprop="author" itemscope itemtype="https://schema.org/Person">
+                        <a href="{{ $authorArchiveUrl }}" itemprop="url" class="post-meta-badge">{{ $postAuthorName }}</a>
+                        <meta itemprop="name" content="{{ $postAuthorName }}">
+                    </span>
                     @if($isUpdated)
                         <span class="post-meta-sep">·</span>
                         <span class="updated-badge" title="최종 수정: {{ $post->updated_at->format('Y.m.d') }}">
@@ -565,7 +588,7 @@ html { scroll-padding-top: 80px; }
             ];
         @endphp
         <aside class="related-section" aria-label="관련 글">
-            <h2 class="related-title">📚 관련 글</h2>
+            <h3 class="related-title">📚 관련 글</h3>
             <div class="related-grid">
                 @foreach($related as $i => $r)
                 <a href="{{ route('posts.show', ['categorySlug' => $r->category_path_segment, 'slug' => $r->slug]) }}" class="related-card">

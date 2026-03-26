@@ -13,6 +13,9 @@ return new class extends Migration
             ['key' => 'twitter_handle',           'value' => '', 'label' => 'Twitter/X 계정 (@없이)',         'type' => 'text', 'group' => 'seo'],
             ['key' => 'og_image_default',         'value' => '', 'label' => '기본 OG 이미지 URL',             'type' => 'text', 'group' => 'seo'],
             ['key' => 'author_name',              'value' => '', 'label' => '기본 저자 이름',                 'type' => 'text', 'group' => 'seo'],
+            ['key' => 'author_nickname',          'value' => '', 'label' => '블로그 운영자 닉네임',           'type' => 'text', 'group' => 'seo'],
+            ['key' => 'author_description',       'value' => '', 'label' => '운영자 설명 (JSON-LD)',          'type' => 'textarea', 'group' => 'seo'],
+            ['key' => 'author_slug',              'value' => '', 'label' => '작성자 아카이브 슬러그',          'type' => 'text', 'group' => 'seo'],
             ['key' => 'robots_index',             'value' => 'index,follow', 'label' => '검색엔진 수집 설정', 'type' => 'text', 'group' => 'seo'],
         ];
 
@@ -28,7 +31,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        $keys = ['google_site_verification','naver_site_verification','twitter_handle','og_image_default','author_name','robots_index'];
+        $keys = ['google_site_verification','naver_site_verification','twitter_handle','og_image_default','author_name','author_nickname','author_description','author_slug','robots_index'];
         DB::table('settings')->whereIn('key', $keys)->delete();
     }
 };

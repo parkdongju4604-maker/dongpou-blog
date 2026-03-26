@@ -237,6 +237,26 @@
                    style="font-size:1.05rem;font-weight:600">
         </div>
 
+        {{-- 작성자 --}}
+        @php
+            $defaultAuthorForForm = trim((string) \App\Models\Setting::get('author_nickname', ''));
+            if ($defaultAuthorForForm === '') {
+                $defaultAuthorForForm = trim((string) \App\Models\Setting::get('author_name', ''));
+            }
+            if ($defaultAuthorForForm === '') {
+                $defaultAuthorForForm = trim((string) \App\Models\Setting::get('blog_name', config('app.name', 'Blog')));
+            }
+        @endphp
+        <div class="form-group">
+            <label class="form-label">
+                작성자
+                <span style="font-weight:400;color:#94a3b8;font-size:.75rem;margin-left:4px">비워두면 기본 작성자 사용</span>
+            </label>
+            <input type="text" name="author_name" class="form-control"
+                   value="{{ old('author_name', $post->author_name ?? $defaultAuthorForForm) }}"
+                   placeholder="예: 피부관리사 OOO" maxlength="120">
+        </div>
+
         {{-- 에디터 --}}
         @php
             $initContentType = old('content_type', $post->content_type ?? 'markdown');

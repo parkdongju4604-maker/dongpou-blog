@@ -45,6 +45,33 @@ class PostController extends Controller
         return view('posts.index', compact('posts', 'categories', 'category', 'currentCategorySlug'));
     }
 
+    public function authorBySlug(string $authorSlug)
+    {
+        [$authorName, $canonicalSlug] = $this->resolveAuthorBySlug($authorSlug);
+        if ($authorSlug !== $canonicalSlug) {
+            return redirect()->route('posts.author', ['authorSlug' => $canonicalSlug], 301);
+        }
+
+        $perPage = (int) Setting::get('posts_per_page', 9);
+        $posts = Post::with('tags')
+            ->published()
+            ->where(function ($query) use ($authorName) {
+                $query->where('author_name', $authorName);
+
+                // 작성자 컬럼 도입 이전 레거시 데이터 호환
+                if ($authorName === $this->defaultAuthorName()) {
+                    $query->orWhereNull('author_name')->orWhere('author_name', '');
+                }
+            })
+            ->paginate($perPage);
+
+        $categories = $this->buildCategoryTabs();
+        $authorNameForArchive = $authorName;
+        $currentAuthorSlug = $canonicalSlug;
+
+        return view('posts.index', compact('posts', 'categories', 'authorNameForArchive', 'currentAuthorSlug'));
+    }
+
     public function show(string $slug)
     {
         $post = Post::published()->where('slug', $slug)->firstOrFail();
@@ -154,6 +181,54 @@ class PostController extends Controller
         return rawurlencode($categoryName);
     }
 
+    private function resolveAuthorBySlug(string $slug): array
+    {
+        $decoded = urldecode($slug);
+        $defaultAuthorName = $this->defaultAuthorName();
+        $defaultAuthorSlug = $this->defaultAuthorSlug($defaultAuthorName);
+
+        if ($slug === $defaultAuthorSlug || $decoded === $defaultAuthorName) {
+            return [$defaultAuthorName, $defaultAuthorSlug];
+        }
+
+        $authorName = Post::published()
+            ->reorder()
+            ->whereNotNull('author_name')
+            ->where('author_name', '!=', '')
+            ->get(['author_name'])
+            ->pluck('author_name')
+            ->unique()
+            ->first(function (string $name) use ($slug, $decoded) {
+                return $this->slugifyAuthorName($name) === $slug || $name === $decoded;
+            });
+
+        if (!$authorName) {
+            abort(404);
+        }
+
+        return [$authorName, $this->slugifyAuthorName($authorName)];
+    }
+
+    private function defaultAuthorSlug(string $defaultAuthorName): string
+    {
+        $configured = trim((string) Setting::get('author_slug', ''));
+        if ($configured !== '') {
+            return trim($configured, '/');
+        }
+
+        return $this->slugifyAuthorName($defaultAuthorName);
+    }
+
+    private function slugifyAuthorName(string $authorName): string
+    {
+        $slug = Str::slug($authorName);
+        if (filled($slug)) {
+            return $slug;
+        }
+
+        return 'author-' . substr(md5($authorName), 0, 12);
+    }
+
     // ── 관리자 라우트 ────────────────────────────
 
     public function dashboard()
@@ -220,6 +295,7 @@ class PostController extends Controller
             'content_type' => 'nullable|in:markdown,html',
             'excerpt'      => 'nullable|max:500',
             'category'     => 'required|max:100',
+            'author_name'  => 'nullable|string|max:120',
             'publish_type' => 'required|in:draft,publish,schedule',
             'scheduled_at' => 'required_if:publish_type,schedule|nullable|date|after:now',
             'tags'         => 'nullable|string|max:500',
@@ -230,6 +306,7 @@ class PostController extends Controller
 
         [$published, $publishedAt] = $this->resolvePublishState($request);
         $contentType = $request->input('content_type', 'markdown');
+        $authorName = $this->resolvePostAuthorName($request->input('author_name'));
 
         // 본문 첫 이미지를 썸네일로 자동 추출
         $thumbnail = Post::extractFirstImage($request->content);
@@ -241,6 +318,7 @@ class PostController extends Controller
             'content_type' => $contentType,
             'excerpt'      => $request->excerpt,
             'category'     => $request->category,
+            'author_name'  => $authorName,
             'published'    => $published,
             'published_at' => $publishedAt,
             'thumbnail'    => $thumbnail,
@@ -269,6 +347,7 @@ class PostController extends Controller
             'content_type' => 'nullable|in:markdown,html',
             'excerpt'      => 'nullable|max:500',
             'category'     => 'required|max:100',
+            'author_name'  => 'nullable|string|max:120',
             'publish_type' => 'required|in:draft,publish,schedule',
             'scheduled_at' => 'required_if:publish_type,schedule|nullable|date|after:now',
             'tags'         => 'nullable|string|max:500',
@@ -279,6 +358,7 @@ class PostController extends Controller
 
         [$published, $publishedAt] = $this->resolvePublishState($request);
         $contentType = $request->input('content_type', 'markdown');
+        $authorName = $this->resolvePostAuthorName($request->input('author_name'));
 
         // 본문 첫 이미지를 썸네일로 자동 추출
         $thumbnail = Post::extractFirstImage($request->content);
@@ -289,6 +369,7 @@ class PostController extends Controller
             'content_type' => $contentType,
             'excerpt'      => $request->excerpt,
             'category'     => $request->category,
+            'author_name'  => $authorName,
             'published'    => $published,
             'published_at' => $publishedAt,
             'thumbnail'    => $thumbnail,
@@ -312,6 +393,32 @@ class PostController extends Controller
             'schedule' => [true,  Carbon::parse($request->scheduled_at)],
             default    => [false, null],  // draft
         };
+    }
+
+    private function resolvePostAuthorName(?string $authorName): string
+    {
+        $authorName = trim((string) $authorName);
+        if ($authorName !== '') {
+            return $authorName;
+        }
+
+        return $this->defaultAuthorName();
+    }
+
+    private function defaultAuthorName(): string
+    {
+        $authorNickname = trim((string) Setting::get('author_nickname', ''));
+        if ($authorNickname !== '') {
+            return $authorNickname;
+        }
+
+        $authorName = trim((string) Setting::get('author_name', ''));
+        if ($authorName !== '') {
+            return $authorName;
+        }
+
+        $blogName = trim((string) Setting::get('blog_name', config('app.name', 'Blog')));
+        return $blogName !== '' ? $blogName : (string) config('app.name', 'Blog');
     }
 
     public function destroy(Post $post)

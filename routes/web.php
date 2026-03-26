@@ -41,6 +41,7 @@ Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 Route::get('/feed/rss',  [FeedController::class, 'rss'])->name('feed.rss');
 Route::get('/feed/atom', [FeedController::class, 'atom'])->name('feed.atom');
 Route::view('/privacy-policy', 'privacy-policy')->name('privacy.policy');
+Route::get('/author/{authorSlug}', [PostController::class, 'authorBySlug'])->name('posts.author');
 
 // ── 관리자 로그인/로그아웃 (인증 불필요)
 Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
@@ -113,7 +114,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
 });
 
 // ── 공개 canonical 라우트 (기존 정적 라우트/관리자 라우트보다 뒤에 배치)
-$publicReserved = 'admin|api|feed|posts|category|search|tags|privacy-policy|sitemap\.xml|robots\.txt';
+$publicReserved = 'admin|api|feed|posts|category|search|tags|author|privacy-policy|sitemap\.xml|robots\.txt';
 Route::get('/{categorySlug}/{slug}', [PostController::class, 'showByCategory'])
     ->where('categorySlug', "^(?!({$publicReserved})$).+")
     ->name('posts.show');

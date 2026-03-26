@@ -5,15 +5,24 @@
     $blogName     = Setting::get('blog_name',     config('app.name'));
     $blogDesc     = Setting::get('blog_description', Setting::get('blog_tagline',''));
     $isTagPage    = isset($tag);
+    $isAuthorPage = isset($authorNameForArchive);
     $canonicalUrl = $isTagPage
         ? route('tags.show', $tag->slug)
-        : (isset($category) ? route('posts.category', ['categorySlug' => ($currentCategorySlug ?? rawurlencode($category))]) : route('home'));
+        : ($isAuthorPage
+            ? route('posts.author', ['authorSlug' => ($currentAuthorSlug ?? 'author')])
+            : (isset($category)
+                ? route('posts.category', ['categorySlug' => ($currentCategorySlug ?? rawurlencode($category))])
+                : route('home')));
     $blogSchema   = ['@context'=>'https://schema.org','@type'=>'Blog','name'=>$blogName,'description'=>$blogDesc,'url'=>url('/')];
 @endphp
 
 @extends('layouts.app')
-@section('title', $isTagPage ? '#'.$tag->name.' | '.$blogName : (isset($category) ? $category.' | '.$blogName : $blogName))
-@section('description', $blogDesc)
+@section('title', $isTagPage
+    ? '#'.$tag->name.' | '.$blogName
+    : ($isAuthorPage
+        ? $authorNameForArchive.' 작성 글 | '.$blogName
+        : (isset($category) ? $category.' | '.$blogName : $blogName)))
+@section('description', $isAuthorPage ? $authorNameForArchive.' 작성자의 글 모음입니다.' : $blogDesc)
 @section('canonical', $canonicalUrl)
 
 @push('jsonld')
@@ -26,18 +35,21 @@
     <div class="hero-eyebrow">{{ $blogName }}</div>
     <h1 id="hero-heading">
         @if($isTagPage) #{{ $tag->name }}
+        @elseif($isAuthorPage) {{ $authorNameForArchive }} 작성 글
         @elseif(isset($category)) {{ $category }}
         @else {{ $heroTitle }}
         @endif
     </h1>
     <p>
         @if($isTagPage) <span style="background:#eef2ff;color:#4f46e5;padding:3px 10px;border-radius:20px;font-size:.875rem">#{{ $tag->name }}</span> 태그가 달린 글 {{ $posts->total() }}개
+        @elseif($isAuthorPage) {{ $authorNameForArchive }} 작성자의 공개 글 {{ $posts->total() }}개
         @elseif(isset($category)) {{ $category }} 카테고리의 글 목록입니다.
         @else {{ $heroSubtitle }}
         @endif
     </p>
 </section>
 
+@if(!$isAuthorPage)
 <nav aria-label="카테고리 필터">
     <div class="category-tabs">
         <a href="{{ route('home') }}"
@@ -52,6 +64,7 @@
         @endforeach
     </div>
 </nav>
+@endif
 
 @if($posts->isEmpty())
     <div style="text-align:center;padding:80px 0 100px;color:#9ca3af">
