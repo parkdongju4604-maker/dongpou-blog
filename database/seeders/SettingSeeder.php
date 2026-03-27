@@ -22,14 +22,14 @@ class SettingSeeder extends Seeder
             ['key' => 'primary_color',    'value' => '#4f46e5',                            'label' => '포인트 컬러',        'type' => 'color',    'group' => 'appearance'],
 
             // ── seo ──
-            ['key' => 'blog_description', 'value' => '다양한 주제의 개인 블로그입니다.',     'label' => '블로그 설명 (SEO)', 'type' => 'textarea', 'group' => 'seo'],
+            ['key' => 'blog_description', 'value' => '다양한 주제의 개인 블로그입니다.',     'label' => '블로그 설명 (SEO)(공백포함 80자 이내)', 'type' => 'textarea', 'group' => 'seo'],
             ['key' => 'og_image',         'value' => '',                                   'label' => 'OG 이미지 URL',      'type' => 'text',     'group' => 'seo'],
             ['key' => 'og_image_default', 'value' => '',                                   'label' => '기본 OG 이미지 URL', 'type' => 'text',     'group' => 'seo'],
             ['key' => 'google_analytics', 'value' => '',                                   'label' => 'Google Analytics ID','type' => 'text',     'group' => 'seo'],
             ['key' => 'twitter_handle',   'value' => '',                                   'label' => 'Twitter/X 계정 (@없이)', 'type' => 'text', 'group' => 'seo'],
             ['key' => 'author_name',      'value' => '',                                   'label' => '기본 저자 이름',     'type' => 'text',     'group' => 'seo'],
             ['key' => 'author_nickname',  'value' => '',                                   'label' => '블로그 운영자 닉네임', 'type' => 'text',   'group' => 'seo'],
-            ['key' => 'author_description','value' => '',                                   'label' => '운영자 설명 (JSON-LD)', 'type' => 'textarea','group' => 'seo'],
+            ['key' => 'author_description','value' => '',                                   'label' => '운영자 설명 (JSON-LD)(공백포함 80자 이내)', 'type' => 'textarea','group' => 'seo'],
             ['key' => 'author_slug',      'value' => '',                                   'label' => '작성자 아카이브 슬러그', 'type' => 'text',   'group' => 'seo'],
             ['key' => 'robots_index',     'value' => 'index,follow',                       'label' => '검색엔진 수집 설정', 'type' => 'text',     'group' => 'seo'],
             ['key' => 'meta_keywords',    'value' => '',                                   'label' => '사이트 키워드 (쉼표 구분)', 'type' => 'text', 'group' => 'seo'],
