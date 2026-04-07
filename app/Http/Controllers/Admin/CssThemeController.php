@@ -108,32 +108,53 @@ class CssThemeController extends Controller
                 return back()->with('error', 'API 응답 형식이 올바르지 않습니다.');
             }
 
-            $existingNames = CssTheme::pluck('name')->map(fn($n) => mb_strtolower(trim($n)))->toArray();
+            $existingThemes = CssTheme::get()->keyBy(
+                fn($theme) => mb_strtolower(trim($theme->name))
+            );
 
             $added = 0;
+            $updated = 0;
             foreach ($json['data'] as $item) {
-                $itemName = trim($item['name'] ?? '');
-                if ($itemName === '' || in_array(mb_strtolower($itemName), $existingNames, true)) {
+                $itemName = trim((string) ($item['name'] ?? ''));
+                if ($itemName === '') {
                     continue;
                 }
 
-                CssTheme::create([
+                $normalizedName = mb_strtolower($itemName);
+                $itemCss = (string) ($item['content'] ?? '');
+                $existingTheme = $existingThemes->get($normalizedName);
+
+                if ($existingTheme) {
+                    $existingTheme->update([
+                        'name' => $itemName,
+                        'css'  => $itemCss,
+                    ]);
+                    $updated++;
+                    continue;
+                }
+
+                $createdTheme = CssTheme::create([
                     'name'          => $itemName,
                     'description'   => $itemName . ' 테마',
                     'preview_color' => '#4f46e5',
-                    'css'           => $item['content'] ?? '',
+                    'css'           => $itemCss,
                     'is_active'     => false,
                 ]);
 
-                $existingNames[] = mb_strtolower($itemName);
+                $existingThemes->put($normalizedName, $createdTheme);
                 $added++;
             }
 
-            if ($added === 0) {
-                return back()->with('success', '새로 추가할 테마가 없습니다. 서버 캐시는 초기화되었습니다.');
+            if ($added === 0 && $updated === 0) {
+                return back()->with('success', '추가/업데이트할 테마가 없습니다. 서버 캐시는 초기화되었습니다.');
             }
 
-            return back()->with('success', "총 {$added}개의 테마가 추가되었습니다. 서버 캐시도 초기화되었습니다.");
+            CssTheme::clearCache();
+
+            return back()->with(
+                'success',
+                "테마 동기화 완료: 신규 {$added}개, 업데이트 {$updated}개 (서버 캐시 초기화됨)"
+            );
 
         } catch (\Exception $e) {
             return back()->with('error', '동기화 중 오류가 발생했습니다: ' . $e->getMessage());
