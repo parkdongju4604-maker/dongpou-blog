@@ -30,6 +30,10 @@
     $aboutTitle = trim((string) Setting::get('about_title', 'About')) ?: 'About';
     $aboutHtml = (string) Setting::get('about_html', '');
     $aboutPreview = Str::limit(trim(strip_tags($aboutHtml)), 170);
+    $aboutImage = '';
+    if (preg_match('/<img[^>]+src=["\\\']([^"\\\']+)["\\\']/i', $aboutHtml, $imageMatches)) {
+        $aboutImage = (string) ($imageMatches[1] ?? '');
+    }
 
     // 메타: 글 정보 기반 자동 생성 (전역 설정 fallback)
     $seoTitle   = $post->title;
@@ -345,6 +349,15 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
     color: #0f172a;
     margin-bottom: 7px;
 }
+.about-intro-thumb {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 12px;
+    display: block;
+}
 .about-intro-desc {
     font-size: .88rem;
     color: #475569;
@@ -635,6 +648,9 @@ html { scroll-padding-top: 80px; }
             @if($aboutEnabled)
                 <a href="{{ route('about.show') }}" class="about-intro-card" aria-label="{{ $aboutTitle }} 페이지로 이동">
                     <span class="about-intro-label">About</span>
+                    @if($aboutImage !== '')
+                        <img src="{{ $aboutImage }}" alt="{{ $aboutTitle }} 대표 이미지" class="about-intro-thumb" loading="lazy">
+                    @endif
                     <h2 class="about-intro-title">{{ $aboutTitle }}</h2>
                     <p class="about-intro-desc">
                         {{ $aboutPreview !== '' ? $aboutPreview : '블로그와 운영자 소개를 확인해보세요.' }}
