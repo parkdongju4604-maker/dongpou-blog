@@ -21,6 +21,8 @@
     $authorArchiveUrl = route('posts.author', ['authorSlug' => $authorSlug]);
     $metaKeywords   = Setting::get('meta_keywords', '');
     $headCode       = Setting::get('head_code', '');
+    $aboutEnabled   = Setting::get('about_enabled', '0') === '1';
+    $aboutTitle     = trim((string) Setting::get('about_title', 'About')) ?: 'About';
     $canonicalUrl   = url()->current();
     $activeTheme    = CssTheme::getActive();
     $activeThemeCss = $activeTheme ? $activeTheme->css : '';
@@ -211,6 +213,12 @@
         <a href="{{ route('privacy.policy') }}"
            style="color:inherit;opacity:.7;text-decoration:none;font-size:.8rem"
            title="개인정보처리방침">개인정보처리방침</a>
+        @if($aboutEnabled)
+        &nbsp;·&nbsp;
+        <a href="{{ route('about.show') }}"
+           style="color:inherit;opacity:.7;text-decoration:none;font-size:.8rem"
+           title="{{ $aboutTitle }}">{{ $aboutTitle }}</a>
+        @endif
     </p>
 </footer>
 

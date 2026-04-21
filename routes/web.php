@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\AboutController;
 use App\Http\Controllers\Admin\ApiTokenController;
 use App\Http\Controllers\Admin\CommentController as AdminCommentController;
 use App\Http\Controllers\CommentController;
@@ -41,6 +42,7 @@ Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 Route::get('/feed/rss',  [FeedController::class, 'rss'])->name('feed.rss');
 Route::get('/feed/atom', [FeedController::class, 'atom'])->name('feed.atom');
 Route::view('/privacy-policy', 'privacy-policy')->name('privacy.policy');
+Route::get('/about', [AboutController::class, 'show'])->name('about.show');
 Route::get('/author/{authorSlug}', [PostController::class, 'authorBySlug'])->name('posts.author');
 
 // ── 관리자 로그인/로그아웃 (인증 불필요)
@@ -85,6 +87,8 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
     // 사이트 설정
     Route::get('/settings', [SettingController::class, 'index'])->name('settings');
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
+    Route::get('/about', [AboutController::class, 'edit'])->name('about.edit');
+    Route::post('/about', [AboutController::class, 'update'])->name('about.update');
 
     // 댓글 관리
     Route::get('/comments',                        [AdminCommentController::class, 'index'])->name('comments.index');
@@ -114,7 +118,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
 });
 
 // ── 공개 canonical 라우트 (기존 정적 라우트/관리자 라우트보다 뒤에 배치)
-$publicReserved = 'admin|api|feed|posts|category|search|tags|author|privacy-policy|sitemap\.xml|robots\.txt';
+$publicReserved = 'admin|api|feed|posts|category|search|tags|author|about|privacy-policy|sitemap\.xml|robots\.txt';
 Route::get('/{categorySlug}/{slug}', [PostController::class, 'showByCategory'])
     ->where('categorySlug', "^(?!({$publicReserved})$).+")
     ->name('posts.show');

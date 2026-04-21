@@ -26,6 +26,10 @@
     $authorArchiveUrl = route('posts.author', ['authorSlug' => $authorSlug]);
     $ogImgDefault = Setting::get('og_image_default', '');
     $kakaoJsKey   = Setting::get('kakao_js_key', '');
+    $aboutEnabled = Setting::get('about_enabled', '0') === '1';
+    $aboutTitle = trim((string) Setting::get('about_title', 'About')) ?: 'About';
+    $aboutHtml = (string) Setting::get('about_html', '');
+    $aboutPreview = Str::limit(trim(strip_tags($aboutHtml)), 170);
 
     // 메타: 글 정보 기반 자동 생성 (전역 설정 fallback)
     $seoTitle   = $post->title;
@@ -307,6 +311,52 @@ details[open].toc-mobile .toc-mobile-arrow { transform: rotate(180deg); }
 }
 .post-tag:hover { background: var(--primary, #4f46e5); color: #fff; }
 
+/* ── About 소개 카드 ── */
+.about-intro-card {
+    margin-top: 44px;
+    border: 1.5px solid var(--border, #e5e7eb);
+    border-radius: 14px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
+    padding: 20px 22px;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+.about-intro-card:hover {
+    border-color: var(--primary, #4f46e5);
+    box-shadow: 0 6px 24px rgba(79, 70, 229, .12);
+    transform: translateY(-1px);
+}
+.about-intro-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--primary, #4f46e5);
+    margin-bottom: 8px;
+}
+.about-intro-title {
+    font-size: 1.02rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 7px;
+}
+.about-intro-desc {
+    font-size: .88rem;
+    color: #475569;
+    line-height: 1.7;
+}
+.about-intro-cta {
+    margin-top: 10px;
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--primary, #4f46e5);
+}
+
 /* ── 관련 글 ── */
 .related-section { margin-top: 56px; padding-top: 40px; border-top: 1px solid var(--border, #e5e7eb); }
 .related-title { font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 20px; letter-spacing: -.2px; }
@@ -581,6 +631,17 @@ html { scroll-padding-top: 80px; }
             <div class="post-content" id="post-content" itemprop="articleBody">
                 {!! $renderedContent !!}
             </div>
+
+            @if($aboutEnabled)
+                <a href="{{ route('about.show') }}" class="about-intro-card" aria-label="{{ $aboutTitle }} 페이지로 이동">
+                    <span class="about-intro-label">About</span>
+                    <h2 class="about-intro-title">{{ $aboutTitle }}</h2>
+                    <p class="about-intro-desc">
+                        {{ $aboutPreview !== '' ? $aboutPreview : '블로그와 운영자 소개를 확인해보세요.' }}
+                    </p>
+                    <p class="about-intro-cta">소개 페이지 전체 보기 →</p>
+                </a>
+            @endif
         </article>
 
         {{-- 관련 글 --}}
