@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ApiTokenController;
 use App\Http\Controllers\Admin\CommentController as AdminCommentController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\Admin\CssThemeController;
+use App\Http\Controllers\Admin\ImageManagerController;
 use App\Http\Controllers\Admin\StatsController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\CategoryController;
@@ -89,6 +90,9 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
     Route::get('/about', [AboutController::class, 'edit'])->name('about.edit');
     Route::post('/about', [AboutController::class, 'update'])->name('about.update');
+    Route::get('/images', [ImageManagerController::class, 'index'])->name('images.index');
+    Route::post('/images', [ImageManagerController::class, 'store'])->name('images.store');
+    Route::delete('/images', [ImageManagerController::class, 'destroy'])->name('images.destroy');
 
     // 댓글 관리
     Route::get('/comments',                        [AdminCommentController::class, 'index'])->name('comments.index');

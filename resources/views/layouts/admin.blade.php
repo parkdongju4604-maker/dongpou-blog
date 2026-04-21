@@ -172,7 +172,7 @@
     <div class="sidebar-logo">
         <a href="{{ route('admin.dashboard') }}" style="display:flex;align-items:center;gap:8px;">
             <div class="brand">관리자 패널</div>
-            <span style="font-size:.7rem;font-weight:600;color:#64748b;">v1.6.0</span>
+            <span style="font-size:.7rem;font-weight:600;color:#64748b;">v1.7.0</span>
         </a>
     </div>
 
@@ -206,6 +206,15 @@
                     <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
                 </svg>
                 카테고리
+            </a>
+            <a href="{{ route('admin.images.index') }}"
+               class="nav-item {{ request()->routeIs('admin.images.*') ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <path d="M21 15l-5-5L5 21"/>
+                </svg>
+                이미지 관리
             </a>
         </div>
 
