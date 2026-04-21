@@ -65,6 +65,55 @@
     color: #64748b;
     line-height: 1.6;
 }
+.pagination-wrap {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.pagination-summary {
+    font-size: .78rem;
+    color: #64748b;
+}
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.page-link {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    color: #475569;
+    font-size: .82rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .12s;
+}
+.page-link:hover {
+    border-color: #6366f1;
+    color: #4f46e5;
+    background: #eef2ff;
+}
+.page-link.active {
+    background: #4f46e5;
+    border-color: #4f46e5;
+    color: #fff;
+}
+.page-link.disabled {
+    opacity: .45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
 </style>
 @endpush
 
@@ -131,8 +180,45 @@
                 @endforeach
             </div>
 
-            <div style="margin-top:18px">
-                {{ $images->links() }}
+            <div class="pagination-wrap">
+                <p class="pagination-summary">
+                    {{ number_format($images->firstItem() ?? 0) }} - {{ number_format($images->lastItem() ?? 0) }} / 총 {{ number_format($images->total()) }}개
+                </p>
+                <nav class="pagination" aria-label="이미지 목록 페이지네이션">
+                    <a class="page-link {{ $images->onFirstPage() ? 'disabled' : '' }}"
+                       href="{{ $images->previousPageUrl() ?: '#' }}"
+                       aria-label="이전 페이지">‹</a>
+
+                    @php
+                        $currentPage = $images->currentPage();
+                        $lastPage = $images->lastPage();
+                        $startPage = max(1, $currentPage - 2);
+                        $endPage = min($lastPage, $currentPage + 2);
+                    @endphp
+
+                    @if($startPage > 1)
+                        <a class="page-link" href="{{ $images->url(1) }}">1</a>
+                        @if($startPage > 2)
+                            <span class="page-link disabled">...</span>
+                        @endif
+                    @endif
+
+                    @for($page = $startPage; $page <= $endPage; $page++)
+                        <a class="page-link {{ $page === $currentPage ? 'active' : '' }}"
+                           href="{{ $images->url($page) }}">{{ $page }}</a>
+                    @endfor
+
+                    @if($endPage < $lastPage)
+                        @if($endPage < $lastPage - 1)
+                            <span class="page-link disabled">...</span>
+                        @endif
+                        <a class="page-link" href="{{ $images->url($lastPage) }}">{{ $lastPage }}</a>
+                    @endif
+
+                    <a class="page-link {{ $images->hasMorePages() ? '' : 'disabled' }}"
+                       href="{{ $images->nextPageUrl() ?: '#' }}"
+                       aria-label="다음 페이지">›</a>
+                </nav>
             </div>
         @endif
     </div>
