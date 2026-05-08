@@ -11,26 +11,6 @@
         <lastmod>{{ now()->toAtomString() }}</lastmod>
     </url>
 
-    {{-- 카테고리 --}}
-    @foreach($categories as $category)
-    <url>
-        <loc>{{ $baseUrl }}/{{ $category['slug'] }}</loc>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-        <lastmod>{{ now()->toAtomString() }}</lastmod>
-    </url>
-    @endforeach
-
-    {{-- 태그 --}}
-    @foreach($tags as $tag)
-    <url>
-        <loc>{{ $baseUrl }}/tags/{{ $tag->slug }}</loc>
-        <changefreq>weekly</changefreq>
-        <priority>0.5</priority>
-        <lastmod>{{ now()->toAtomString() }}</lastmod>
-    </url>
-    @endforeach
-
     {{-- 포스트 --}}
     @foreach($posts as $post)
     <url>

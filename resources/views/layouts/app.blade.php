@@ -12,6 +12,8 @@
     $ogImageDefault = Setting::get('og_image_default', '');
     $twitterHandle  = Setting::get('twitter_handle', '');
     $robotsIndex    = Setting::get('robots_index', 'index,follow');
+    $pageRobots     = trim((string) $__env->yieldContent('robots'));
+    $robotsMeta     = $pageRobots !== '' ? $pageRobots : $robotsIndex;
     $authorNickname = trim((string) Setting::get('author_nickname', ''));
     $authorBaseName = trim((string) Setting::get('author_name', ''));
     $authorName     = $authorNickname !== '' ? $authorNickname : ($authorBaseName !== '' ? $authorBaseName : $blogName);
@@ -36,7 +38,7 @@
     <title>@yield('title', $blogName)</title>
     <meta name="description" content="@yield('description', $blogDesc)">
     <meta name="author" content="@yield('author', $authorName)">
-    <meta name="robots" content="{{ $robotsIndex }}">
+    <meta name="robots" content="{{ $robotsMeta }}">
     @if($metaKeywords)
     <meta name="keywords" content="{{ $metaKeywords }}">
     @endif

@@ -24,6 +24,7 @@
         : (isset($category) ? $category.' | '.$blogName : $blogName)))
 @section('description', $isAuthorPage ? $authorNameForArchive.' 작성자의 글 모음입니다.' : $blogDesc)
 @section('canonical', $canonicalUrl)
+@section('robots', ($isTagPage || isset($category)) ? 'noindex,follow' : '')
 
 @push('jsonld')
 <script type="application/ld+json">{!! json_encode($blogSchema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!}</script>
